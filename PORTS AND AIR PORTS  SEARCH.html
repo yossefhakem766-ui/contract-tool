@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بحث الموانئ والمطارات</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --navy: #0a1628;
+    --deep: #0d1f3c;
+    --panel: #112244;
+    --border: #1e3a6e;
+    --accent: #00d4ff;
+    --accent2: #00ff9f;
+    --gold: #ffd700;
+    --text: #c8d8f0;
+    --dim: #6a8ab0;
+    --port: #00d4ff;
+    --airport: #00ff9f;
+    --both: #ffd700;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .header .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 30px rgba(0,212,255,0.4);
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    color: var(--dim);
+    font-size: 1rem;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .offline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,255,159,0.1);
+    border: 1px solid rgba(0,255,159,0.3);
+    color: var(--accent2);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 12px;
+    font-weight: 600;
+  }
+
+  /* Stats */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Search Box */
+  .search-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .search-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--deep);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 1.1rem;
+    direction: ltr;
+    text-align: left;
+    transition: all 0.3s;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
+  }
+
+  .search-input::placeholder { color: var(--dim); }
+
+  .search-btn {
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    color: var(--navy);
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,212,255,0.4);
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label { color: var(--dim); font-size: 0.85rem; }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 16px;
+    color: var(--dim);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,212,255,0.1); border-color: var(--accent); color: var(--accent); }
+  .filter-btn.port.active { background: rgba(0,212,255,0.1); border-color: var(--port); color: var(--port); }
+  .filter-btn.airport.active { background: rgba(0,255,159,0.1); border-color: var(--airport); color: var(--airport); }
+
+  /* Results */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .results-count {
+    color: var(--dim);
+    font-size: 0.9rem;
+  }
+
+  .results-count span { color: var(--accent); font-weight: 700; }
+
+  .results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .result-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.25s;
+    cursor: default;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card:hover {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    transform: translateX(-4px);
+  }
+
+  .type-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .type-badge.port { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); }
+  .type-badge.airport { background: rgba(0,255,159,0.1); border: 1px solid rgba(0,255,159,0.3); }
+  .type-badge.both { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); }
+
+  .result-info { flex: 1; }
+
+  .result-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .result-fullname {
+    font-size: 0.9rem;
+    color: var(--dim);
+    margin-top: 2px;
+    font-family: 'Cairo', sans-serif;
+  }
+
+  .result-right {
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .result-country {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    text-align: left;
+  }
+
+  .result-flag { font-size: 1.4rem; }
+
+  .type-tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  .type-tag.port { background: rgba(0,212,255,0.15); color: var(--port); }
+  .type-tag.airport { background: rgba(0,255,159,0.15); color: var(--airport); }
+  .type-tag.both { background: rgba(255,215,0,0.15); color: var(--gold); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+  }
+
+  .empty-state .icon { font-size: 4rem; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+
+  /* Welcome state */
+  .welcome-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--dim);
+  }
+
+  .welcome-state .icon { font-size: 5rem; margin-bottom: 20px; opacity: 0.6; }
+  .welcome-state h3 { font-size: 1.3rem; color: var(--text); margin-bottom: 10px; }
+  .welcome-state p { font-size: 0.9rem; line-height: 1.8; }
+
+  .examples {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .example-tag {
+    background: var(--deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .example-tag:hover {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 50px;
+    color: var(--dim);
+    font-size: 0.8rem;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🌐</div>
+      <h1>بحث الموانئ والمطارات</h1>
+    </div>
+    <p class="subtitle">ابحث عن أي ميناء أو مطار في العالم واعرف دولته فوراً</p>
+    <div class="offline-badge">
+      <span>●</span> يعمل بالكامل بدون إنترنت
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="totalCount">-</div>
+      <div class="stat-label">إجمالي السجلات</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="portCount">-</div>
+      <div class="stat-label">ميناء بحري</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="airportCount">-</div>
+      <div class="stat-label">مطار</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="countryCount">-</div>
+      <div class="stat-label">دولة</div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <div class="search-row">
+      <input
+        type="text"
+        class="search-input"
+        id="searchInput"
+        placeholder="اكتب اسم الميناء أو المطار أو الكود... مثال: MUNDRA, JFK, Dubai"
+        autocomplete="off"
+      />
+      <button class="search-btn" onclick="doSearch()">🔍 بحث</button>
+    </div>
+    <div class="filters">
+      <span class="filter-label">تصفية:</span>
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">الكل</button>
+      <button class="filter-btn port" data-filter="port" onclick="setFilter('port',this)">⚓ موانئ فقط</button>
+      <button class="filter-btn airport" data-filter="airport" onclick="setFilter('airport',this)">✈️ مطارات فقط</button>
+    </div>
+  </div>
+
+  <div id="resultsHeader" class="results-header" style="display:none">
+    <div class="results-count">نتائج البحث: <span id="countDisplay">0</span> نتيجة</div>
+  </div>
+
+  <div class="results-grid" id="resultsGrid">
+    <div class="welcome-state">
+      <div class="icon">🗺️</div>
+      <h3>ابدأ البحث عن أي ميناء أو مطار</h3>
+      <p>اكتب الاسم أو الكود في خانة البحث<br>يمكنك البحث بالاسم الكامل أو الكود المختصر</p>
+      <div class="examples">
+        <span class="example-tag" onclick="quickSearch('MUNDRA')">MUNDRA</span>
+        <span class="example-tag" onclick="quickSearch('JFK')">JFK</span>
+        <span class="example-tag" onclick="quickSearch('Dubai')">Dubai</span>
+        <span class="example-tag" onclick="quickSearch('Rotterdam')">Rotterdam</span>
+        <span class="example-tag" onclick="quickSearch('Singapore')">Singapore</span>
+        <span class="example-tag" onclick="quickSearch('Hamburg')">Hamburg</span>
+        <span class="example-tag" onclick="quickSearch('Jebel Ali')">Jebel Ali</span>
+        <span class="example-tag" onclick="quickSearch('LAX')">LAX</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">بيانات شاملة لآلاف الموانئ والمطارات حول العالم • يعمل بدون إنترنت</div>
+</div>
+
+<script>
+// =============================================
+// DATABASE - Ports & Airports
+// =============================================
+const DB = [
+  // ===== INDIA =====
+  {code:"INMUN",name:"Mundra",full:"Mundra Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INNSA",name:"Nhava Sheva",full:"Jawaharlal Nehru Port (JNPT)",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INMAA",name:"Chennai",full:"Chennai Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INBOM",name:"Mumbai",full:"Mumbai Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INCCU",name:"Kolkata",full:"Kolkata Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INKAN",name:"Kandla",full:"Deendayal Port (Kandla)",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INCOK",name:"Kochi",full:"Cochin Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INVTZ",name:"Visakhapatnam",full:"Visakhapatnam Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INMRM",name:"Mangalore",full:"New Mangalore Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"INPAV",name:"Pipavav",full:"Pipavav Port",type:"port",country:"India",flag:"🇮🇳"},
+  {code:"BOM",name:"Mumbai",full:"Chhatrapati Shivaji Maharaj International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"DEL",name:"Delhi",full:"Indira Gandhi International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"MAA",name:"Chennai",full:"Chennai International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"CCU",name:"Kolkata",full:"Netaji Subhas Chandra Bose International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"BLR",name:"Bangalore",full:"Kempegowda International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"HYD",name:"Hyderabad",full:"Rajiv Gandhi International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"COK",name:"Kochi",full:"Cochin International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+  {code:"AMD",name:"Ahmedabad",full:"Sardar Vallabhbhai Patel International Airport",type:"airport",country:"India",flag:"🇮🇳"},
+
+  // ===== UAE =====
+  {code:"AEJEA",name:"Jebel Ali",full:"Jebel Ali Port",type:"port",country:"UAE",flag:"🇦🇪"},
+  {code:"AEDXB",name:"Dubai",full:"Port of Dubai (Rashid)",type:"port",country:"UAE",flag:"🇦🇪"},
+  {code:"AEAUH",name:"Abu Dhabi",full:"Abu Dhabi Port (Zayed Port)",type:"port",country:"UAE",flag:"🇦🇪"},
+  {code:"AESHJ",name:"Sharjah",full:"Port Khalid (Sharjah)",type:"port",country:"UAE",flag:"🇦🇪"},
+  {code:"DXB",name:"Dubai",full:"Dubai International Airport",type:"airport",country:"UAE",flag:"🇦🇪"},
+  {code:"AUH",name:"Abu Dhabi",full:"Abu Dhabi International Airport",type:"airport",country:"UAE",flag:"🇦🇪"},
+  {code:"SHJ",name:"Sharjah",full:"Sharjah International Airport",type:"airport",country:"UAE",flag:"🇦🇪"},
+  {code:"DWC",name:"Dubai South",full:"Al Maktoum International Airport",type:"airport",country:"UAE",flag:"🇦🇪"},
+
+  // ===== CHINA =====
+  {code:"CNSHA",name:"Shanghai",full:"Port of Shanghai",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNNBO",name:"Ningbo",full:"Port of Ningbo-Zhoushan",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNSZX",name:"Shenzhen",full:"Port of Shenzhen",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNGZU",name:"Guangzhou",full:"Port of Guangzhou",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNQIN",name:"Qingdao",full:"Port of Qingdao",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNTXG",name:"Tianjin",full:"Port of Tianjin",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNXAM",name:"Xiamen",full:"Port of Xiamen",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"CNLYG",name:"Lianyungang",full:"Port of Lianyungang",type:"port",country:"China",flag:"🇨🇳"},
+  {code:"PVG",name:"Shanghai Pudong",full:"Shanghai Pudong International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"SHA",name:"Shanghai Hongqiao",full:"Shanghai Hongqiao International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"PEK",name:"Beijing Capital",full:"Beijing Capital International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"PKX",name:"Beijing Daxing",full:"Beijing Daxing International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"CAN",name:"Guangzhou",full:"Guangzhou Baiyun International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"CTU",name:"Chengdu",full:"Chengdu Tianfu International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+  {code:"SZX",name:"Shenzhen",full:"Shenzhen Bao'an International Airport",type:"airport",country:"China",flag:"🇨🇳"},
+
+  // ===== USA =====
+  {code:"USLAX",name:"Los Angeles",full:"Port of Los Angeles",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USLGB",name:"Long Beach",full:"Port of Long Beach",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USNYC",name:"New York",full:"Port of New York & New Jersey",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USSAV",name:"Savannah",full:"Port of Savannah",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USHOU",name:"Houston",full:"Port of Houston",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USSEF",name:"Seattle",full:"Port of Seattle",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USCHS",name:"Charleston",full:"Port of Charleston",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"USBLT",name:"Baltimore",full:"Port of Baltimore",type:"port",country:"USA",flag:"🇺🇸"},
+  {code:"JFK",name:"New York JFK",full:"John F. Kennedy International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"LAX",name:"Los Angeles",full:"Los Angeles International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"ORD",name:"Chicago O'Hare",full:"O'Hare International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"ATL",name:"Atlanta",full:"Hartsfield-Jackson Atlanta International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"DFW",name:"Dallas Fort Worth",full:"Dallas/Fort Worth International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"MIA",name:"Miami",full:"Miami International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"SFO",name:"San Francisco",full:"San Francisco International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"SEA",name:"Seattle",full:"Seattle-Tacoma International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"BOS",name:"Boston",full:"Logan International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+  {code:"EWR",name:"Newark",full:"Newark Liberty International Airport",type:"airport",country:"USA",flag:"🇺🇸"},
+
+  // ===== SINGAPORE =====
+  {code:"SGSIN",name:"Singapore",full:"Port of Singapore",type:"port",country:"Singapore",flag:"🇸🇬"},
+  {code:"SIN",name:"Singapore",full:"Singapore Changi Airport",type:"airport",country:"Singapore",flag:"🇸🇬"},
+
+  // ===== NETHERLANDS =====
+  {code:"NLRTM",name:"Rotterdam",full:"Port of Rotterdam",type:"port",country:"Netherlands",flag:"🇳🇱"},
+  {code:"NLANR",name:"Amsterdam",full:"Port of Amsterdam",type:"port",country:"Netherlands",flag:"🇳🇱"},
+  {code:"AMS",name:"Amsterdam",full:"Amsterdam Airport Schiphol",type:"airport",country:"Netherlands",flag:"🇳🇱"},
+
+  // ===== GERMANY =====
+  {code:"DEHAM",name:"Hamburg",full:"Port of Hamburg",type:"port",country:"Germany",flag:"🇩🇪"},
+  {code:"DEBRL",name:"Bremen",full:"Port of Bremen",type:"port",country:"Germany",flag:"🇩🇪"},
+  {code:"FRA",name:"Frankfurt",full:"Frankfurt Airport",type:"airport",country:"Germany",flag:"🇩🇪"},
+  {code:"MUC",name:"Munich",full:"Munich Airport",type:"airport",country:"Germany",flag:"🇩🇪"},
+  {code:"DUS",name:"Düsseldorf",full:"Düsseldorf Airport",type:"airport",country:"Germany",flag:"🇩🇪"},
+  {code:"HAM",name:"Hamburg",full:"Hamburg Airport",type:"airport",country:"Germany",flag:"🇩🇪"},
+
+  // ===== UK =====
+  {code:"GBFXT",name:"Felixstowe",full:"Port of Felixstowe",type:"port",country:"UK",flag:"🇬🇧"},
+  {code:"GBSOU",name:"Southampton",full:"Port of Southampton",type:"port",country:"UK",flag:"🇬🇧"},
+  {code:"GBLGP",name:"London Gateway",full:"DP World London Gateway",type:"port",country:"UK",flag:"🇬🇧"},
+  {code:"LHR",name:"London Heathrow",full:"Heathrow Airport",type:"airport",country:"UK",flag:"🇬🇧"},
+  {code:"LGW",name:"London Gatwick",full:"Gatwick Airport",type:"airport",country:"UK",flag:"🇬🇧"},
+  {code:"MAN",name:"Manchester",full:"Manchester Airport",type:"airport",country:"UK",flag:"🇬🇧"},
+  {code:"STN",name:"London Stansted",full:"London Stansted Airport",type:"airport",country:"UK",flag:"🇬🇧"},
+
+  // ===== SOUTH KOREA =====
+  {code:"KRPUS",name:"Busan",full:"Port of Busan",type:"port",country:"South Korea",flag:"🇰🇷"},
+  {code:"KRINC",name:"Incheon",full:"Port of Incheon",type:"port",country:"South Korea",flag:"🇰🇷"},
+  {code:"ICN",name:"Seoul Incheon",full:"Incheon International Airport",type:"airport",country:"South Korea",flag:"🇰🇷"},
+  {code:"GMP",name:"Seoul Gimpo",full:"Gimpo International Airport",type:"airport",country:"South Korea",flag:"🇰🇷"},
+
+  // ===== JAPAN =====
+  {code:"JPTYO",name:"Tokyo",full:"Port of Tokyo",type:"port",country:"Japan",flag:"🇯🇵"},
+  {code:"JPYOK",name:"Yokohama",full:"Port of Yokohama",type:"port",country:"Japan",flag:"🇯🇵"},
+  {code:"JPKOB",name:"Kobe",full:"Port of Kobe",type:"port",country:"Japan",flag:"🇯🇵"},
+  {code:"JPNGO",name:"Nagoya",full:"Port of Nagoya",type:"port",country:"Japan",flag:"🇯🇵"},
+  {code:"NRT",name:"Tokyo Narita",full:"Narita International Airport",type:"airport",country:"Japan",flag:"🇯🇵"},
+  {code:"HND",name:"Tokyo Haneda",full:"Tokyo Haneda Airport",type:"airport",country:"Japan",flag:"🇯🇵"},
+  {code:"KIX",name:"Osaka",full:"Kansai International Airport",type:"airport",country:"Japan",flag:"🇯🇵"},
+  {code:"NGO",name:"Nagoya",full:"Chubu Centrair International Airport",type:"airport",country:"Japan",flag:"🇯🇵"},
+
+  // ===== MALAYSIA =====
+  {code:"MYPKG",name:"Port Klang",full:"Port Klang (Westports & Northport)",type:"port",country:"Malaysia",flag:"🇲🇾"},
+  {code:"MYPGU",name:"Pasir Gudang",full:"Port of Pasir Gudang",type:"port",country:"Malaysia",flag:"🇲🇾"},
+  {code:"KUL",name:"Kuala Lumpur",full:"Kuala Lumpur International Airport",type:"airport",country:"Malaysia",flag:"🇲🇾"},
+  {code:"PEN",name:"Penang",full:"Penang International Airport",type:"airport",country:"Malaysia",flag:"🇲🇾"},
+
+  // ===== EGYPT =====
+  {code:"EGPSD",name:"Port Said",full:"Port Said Port",type:"port",country:"Egypt",flag:"🇪🇬"},
+  {code:"EGALY",name:"Alexandria",full:"Alexandria Port",type:"port",country:"Egypt",flag:"🇪🇬"},
+  {code:"EGSOK",name:"Sokhna",full:"Port of Sokhna",type:"port",country:"Egypt",flag:"🇪🇬"},
+  {code:"EGDAK",name:"Damietta",full:"Damietta Port",type:"port",country:"Egypt",flag:"🇪🇬"},
+  {code:"CAI",name:"Cairo",full:"Cairo International Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+  {code:"ALY",name:"Alexandria",full:"Borg El Arab Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+  {code:"HRG",name:"Hurghada",full:"Hurghada International Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+  {code:"SSH",name:"Sharm El Sheikh",full:"Sharm El-Sheikh International Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+  {code:"LXR",name:"Luxor",full:"Luxor International Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+  {code:"ASW",name:"Aswan",full:"Aswan International Airport",type:"airport",country:"Egypt",flag:"🇪🇬"},
+
+  // ===== SAUDI ARABIA =====
+  {code:"SAJED",name:"Jeddah",full:"King Abdulaziz Port (Jeddah Islamic Port)",type:"port",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"SADMM",name:"Dammam",full:"King Abdul Aziz Port (Dammam)",type:"port",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"SAYAM",name:"Yanbu",full:"Yanbu Commercial Port",type:"port",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"JED",name:"Jeddah",full:"King Abdulaziz International Airport",type:"airport",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"RUH",name:"Riyadh",full:"King Khalid International Airport",type:"airport",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"DMM",name:"Dammam",full:"King Fahd International Airport",type:"airport",country:"Saudi Arabia",flag:"🇸🇦"},
+  {code:"MED",name:"Medina",full:"Prince Mohammad Bin Abdulaziz Airport",type:"airport",country:"Saudi Arabia",flag:"🇸🇦"},
+
+  // ===== FRANCE =====
+  {code:"FRLEH",name:"Le Havre",full:"Port of Le Havre",type:"port",country:"France",flag:"🇫🇷"},
+  {code:"FRMRS",name:"Marseille",full:"Port of Marseille",type:"port",country:"France",flag:"🇫🇷"},
+  {code:"CDG",name:"Paris Charles de Gaulle",full:"Paris-Charles de Gaulle Airport",type:"airport",country:"France",flag:"🇫🇷"},
+  {code:"ORY",name:"Paris Orly",full:"Orly Airport",type:"airport",country:"France",flag:"🇫🇷"},
+  {code:"NCE",name:"Nice",full:"Nice Côte d'Azur Airport",type:"airport",country:"France",flag:"🇫🇷"},
+
+  // ===== BELGIUM =====
+  {code:"BEANR",name:"Antwerp",full:"Port of Antwerp-Bruges",type:"port",country:"Belgium",flag:"🇧🇪"},
+  {code:"BRU",name:"Brussels",full:"Brussels Airport",type:"airport",country:"Belgium",flag:"🇧🇪"},
+
+  // ===== SPAIN =====
+  {code:"ESBCN",name:"Barcelona",full:"Port of Barcelona",type:"port",country:"Spain",flag:"🇪🇸"},
+  {code:"ESVLC",name:"Valencia",full:"Port of Valencia",type:"port",country:"Spain",flag:"🇪🇸"},
+  {code:"ESALG",name:"Algeciras",full:"Port of Algeciras",type:"port",country:"Spain",flag:"🇪🇸"},
+  {code:"MAD",name:"Madrid",full:"Adolfo Suárez Madrid-Barajas Airport",type:"airport",country:"Spain",flag:"🇪🇸"},
+  {code:"BCN",name:"Barcelona",full:"Barcelona-El Prat Airport",type:"airport",country:"Spain",flag:"🇪🇸"},
+
+  // ===== TURKEY =====
+  {code:"TRMER",name:"Mersin",full:"Port of Mersin",type:"port",country:"Turkey",flag:"🇹🇷"},
+  {code:"TRISTL",name:"Istanbul",full:"Istanbul Port (Haydarpaşa / Ambarlı)",type:"port",country:"Turkey",flag:"🇹🇷"},
+  {code:"IST",name:"Istanbul",full:"Istanbul Airport",type:"airport",country:"Turkey",flag:"🇹🇷"},
+  {code:"SAW",name:"Istanbul Sabiha",full:"Sabiha Gökçen International Airport",type:"airport",country:"Turkey",flag:"🇹🇷"},
+  {code:"AYT",name:"Antalya",full:"Antalya Airport",type:"airport",country:"Turkey",flag:"🇹🇷"},
+  {code:"ESB",name:"Ankara",full:"Esenboğa International Airport",type:"airport",country:"Turkey",flag:"🇹🇷"},
+
+  // ===== BRAZIL =====
+  {code:"BRSSZ",name:"Santos",full:"Port of Santos",type:"port",country:"Brazil",flag:"🇧🇷"},
+  {code:"BRRIG",name:"Rio de Janeiro",full:"Port of Rio de Janeiro",type:"port",country:"Brazil",flag:"🇧🇷"},
+  {code:"GRU",name:"São Paulo",full:"São Paulo/Guarulhos International Airport",type:"airport",country:"Brazil",flag:"🇧🇷"},
+  {code:"GIG",name:"Rio de Janeiro",full:"Rio de Janeiro/Galeão International Airport",type:"airport",country:"Brazil",flag:"🇧🇷"},
+
+  // ===== AUSTRALIA =====
+  {code:"AUSYD",name:"Sydney",full:"Port of Sydney (Botany Bay)",type:"port",country:"Australia",flag:"🇦🇺"},
+  {code:"AUMEL",name:"Melbourne",full:"Port of Melbourne",type:"port",country:"Australia",flag:"🇦🇺"},
+  {code:"AUBNE",name:"Brisbane",full:"Port of Brisbane",type:"port",country:"Australia",flag:"🇦🇺"},
+  {code:"SYD",name:"Sydney",full:"Sydney Kingsford Smith Airport",type:"airport",country:"Australia",flag:"🇦🇺"},
+  {code:"MEL",name:"Melbourne",full:"Melbourne Airport",type:"airport",country:"Australia",flag:"🇦🇺"},
+  {code:"BNE",name:"Brisbane",full:"Brisbane Airport",type:"airport",country:"Australia",flag:"🇦🇺"},
+  {code:"PER",name:"Perth",full:"Perth Airport",type:"airport",country:"Australia",flag:"🇦🇺"},
+
+  // ===== CANADA =====
+  {code:"CAVAN",name:"Vancouver",full:"Port of Vancouver",type:"port",country:"Canada",flag:"🇨🇦"},
+  {code:"CAHAL",name:"Halifax",full:"Port of Halifax",type:"port",country:"Canada",flag:"🇨🇦"},
+  {code:"YYZ",name:"Toronto",full:"Toronto Pearson International Airport",type:"airport",country:"Canada",flag:"🇨🇦"},
+  {code:"YVR",name:"Vancouver",full:"Vancouver International Airport",type:"airport",country:"Canada",flag:"🇨🇦"},
+  {code:"YUL",name:"Montreal",full:"Montréal-Trudeau International Airport",type:"airport",country:"Canada",flag:"🇨🇦"},
+
+  // ===== PAKISTAN =====
+  {code:"PKKHI",name:"Karachi",full:"Port of Karachi",type:"port",country:"Pakistan",flag:"🇵🇰"},
+  {code:"PKQAS",name:"Qasim",full:"Port Qasim",type:"port",country:"Pakistan",flag:"🇵🇰"},
+  {code:"KHI",name:"Karachi",full:"Jinnah International Airport",type:"airport",country:"Pakistan",flag:"🇵🇰"},
+  {code:"LHE",name:"Lahore",full:"Allama Iqbal International Airport",type:"airport",country:"Pakistan",flag:"🇵🇰"},
+  {code:"ISB",name:"Islamabad",full:"New Islamabad International Airport",type:"airport",country:"Pakistan",flag:"🇵🇰"},
+
+  // ===== SOUTH AFRICA =====
+  {code:"ZACPT",name:"Cape Town",full:"Port of Cape Town",type:"port",country:"South Africa",flag:"🇿🇦"},
+  {code:"ZADUR",name:"Durban",full:"Port of Durban",type:"port",country:"South Africa",flag:"🇿🇦"},
+  {code:"ZAPLZ",name:"Port Elizabeth",full:"Port of Gqeberha (Port Elizabeth)",type:"port",country:"South Africa",flag:"🇿🇦"},
+  {code:"JNB",name:"Johannesburg",full:"O.R. Tambo International Airport",type:"airport",country:"South Africa",flag:"🇿🇦"},
+  {code:"CPT",name:"Cape Town",full:"Cape Town International Airport",type:"airport",country:"South Africa",flag:"🇿🇦"},
+
+  // ===== QATAR =====
+  {code:"QADHM",name:"Hamad Port",full:"Hamad Port (New Doha Port)",type:"port",country:"Qatar",flag:"🇶🇦"},
+  {code:"DOH",name:"Doha",full:"Hamad International Airport",type:"airport",country:"Qatar",flag:"🇶🇦"},
+
+  // ===== KUWAIT =====
+  {code:"KWSWK",name:"Shuwaikh",full:"Port of Shuwaikh",type:"port",country:"Kuwait",flag:"🇰🇼"},
+  {code:"KWI",name:"Kuwait City",full:"Kuwait International Airport",type:"airport",country:"Kuwait",flag:"🇰🇼"},
+
+  // ===== BAHRAIN =====
+  {code:"BHKBS",name:"Khalifa Bin Salman",full:"Khalifa Bin Salman Port",type:"port",country:"Bahrain",flag:"🇧🇭"},
+  {code:"BAH",name:"Bahrain",full:"Bahrain International Airport",type:"airport",country:"Bahrain",flag:"🇧🇭"},
+
+  // ===== OMAN =====
+  {code:"OMSAL",name:"Salalah",full:"Port of Salalah",type:"port",country:"Oman",flag:"🇴🇲"},
+  {code:"OMMCT",name:"Muscat",full:"Port Sultan Qaboos",type:"port",country:"Oman",flag:"🇴🇲"},
+  {code:"MCT",name:"Muscat",full:"Muscat International Airport",type:"airport",country:"Oman",flag:"🇴🇲"},
+  {code:"SLL",name:"Salalah",full:"Salalah Airport",type:"airport",country:"Oman",flag:"🇴🇲"},
+
+  // ===== SRI LANKA =====
+  {code:"LKCMB",name:"Colombo",full:"Port of Colombo",type:"port",country:"Sri Lanka",flag:"🇱🇰"},
+  {code:"CMB",name:"Colombo",full:"Bandaranaike International Airport",type:"airport",country:"Sri Lanka",flag:"🇱🇰"},
+
+  // ===== BANGLADESH =====
+  {code:"BDCGP",name:"Chittagong",full:"Chittagong Port",type:"port",country:"Bangladesh",flag:"🇧🇩"},
+  {code:"DAC",name:"Dhaka",full:"Hazrat Shahjalal International Airport",type:"airport",country:"Bangladesh",flag:"🇧🇩"},
+
+  // ===== INDONESIA =====
+  {code:"IDTPP",name:"Tanjung Priok",full:"Port of Tanjung Priok (Jakarta)",type:"port",country:"Indonesia",flag:"🇮🇩"},
+  {code:"IDTPK",name:"Tanjung Perak",full:"Port of Tanjung Perak (Surabaya)",type:"port",country:"Indonesia",flag:"🇮🇩"},
+  {code:"CGK",name:"Jakarta",full:"Soekarno-Hatta International Airport",type:"airport",country:"Indonesia",flag:"🇮🇩"},
+  {code:"DPS",name:"Bali",full:"Ngurah Rai International Airport",type:"airport",country:"Indonesia",flag:"🇮🇩"},
+  {code:"SUB",name:"Surabaya",full:"Juanda International Airport",type:"airport",country:"Indonesia",flag:"🇮🇩"},
+
+  // ===== THAILAND =====
+  {code:"THBKK",name:"Bangkok (Klong Toei)",full:"Port of Bangkok",type:"port",country:"Thailand",flag:"🇹🇭"},
+  {code:"THLCH",name:"Laem Chabang",full:"Laem Chabang Port",type:"port",country:"Thailand",flag:"🇹🇭"},
+  {code:"BKK",name:"Bangkok Suvarnabhumi",full:"Suvarnabhumi Airport",type:"airport",country:"Thailand",flag:"🇹🇭"},
+  {code:"DMK",name:"Bangkok Don Mueang",full:"Don Mueang International Airport",type:"airport",country:"Thailand",flag:"🇹🇭"},
+  {code:"HKT",name:"Phuket",full:"Phuket International Airport",type:"airport",country:"Thailand",flag:"🇹🇭"},
+
+  // ===== HONG KONG =====
+  {code:"HKHKG",name:"Hong Kong",full:"Port of Hong Kong",type:"port",country:"Hong Kong",flag:"🇭🇰"},
+  {code:"HKG",name:"Hong Kong",full:"Hong Kong International Airport",type:"airport",country:"Hong Kong",flag:"🇭🇰"},
+
+  // ===== TAIWAN =====
+  {code:"TWKEL",name:"Keelung",full:"Port of Keelung",type:"port",country:"Taiwan",flag:"🇹🇼"},
+  {code:"TWTPE",name:"Taipei",full:"Taipei Port",type:"port",country:"Taiwan",flag:"🇹🇼"},
+  {code:"TPE",name:"Taipei",full:"Taiwan Taoyuan International Airport",type:"airport",country:"Taiwan",flag:"🇹🇼"},
+
+  // ===== VIETNAM =====
+  {code:"VNCPH",name:"Cat Lai",full:"Cat Lai Port (Ho Chi Minh City)",type:"port",country:"Vietnam",flag:"🇻🇳"},
+  {code:"VNHPH",name:"Haiphong",full:"Port of Haiphong",type:"port",country:"Vietnam",flag:"🇻🇳"},
+  {code:"SGN",name:"Ho Chi Minh City",full:"Tan Son Nhat International Airport",type:"airport",country:"Vietnam",flag:"🇻🇳"},
+  {code:"HAN",name:"Hanoi",full:"Noi Bai International Airport",type:"airport",country:"Vietnam",flag:"🇻🇳"},
+
+  // ===== PHILIPPINES =====
+  {code:"PHMNL",name:"Manila",full:"Port of Manila",type:"port",country:"Philippines",flag:"🇵🇭"},
+  {code:"MNL",name:"Manila",full:"Ninoy Aquino International Airport",type:"airport",country:"Philippines",flag:"🇵🇭"},
+  {code:"CEB",name:"Cebu",full:"Mactan-Cebu International Airport",type:"airport",country:"Philippines",flag:"🇵🇭"},
+
+  // ===== GREECE =====
+  {code:"GRPIR",name:"Piraeus",full:"Port of Piraeus",type:"port",country:"Greece",flag:"🇬🇷"},
+  {code:"GRTHS",name:"Thessaloniki",full:"Port of Thessaloniki",type:"port",country:"Greece",flag:"🇬🇷"},
+  {code:"ATH",name:"Athens",full:"Athens International Airport Eleftherios Venizelos",type:"airport",country:"Greece",flag:"🇬🇷"},
+
+  // ===== ITALY =====
+  {code:"ITGOA",name:"Genoa",full:"Port of Genoa",type:"port",country:"Italy",flag:"🇮🇹"},
+  {code:"ITVCE",name:"Venice",full:"Port of Venice",type:"port",country:"Italy",flag:"🇮🇹"},
+  {code:"FCO",name:"Rome",full:"Leonardo da Vinci International Airport",type:"airport",country:"Italy",flag:"🇮🇹"},
+  {code:"MXP",name:"Milan Malpensa",full:"Milan Malpensa Airport",type:"airport",country:"Italy",flag:"🇮🇹"},
+
+  // ===== KENYA =====
+  {code:"KEMBA",name:"Mombasa",full:"Port of Mombasa (Kilindini Harbour)",type:"port",country:"Kenya",flag:"🇰🇪"},
+  {code:"NBO",name:"Nairobi",full:"Jomo Kenyatta International Airport",type:"airport",country:"Kenya",flag:"🇰🇪"},
+
+  // ===== NIGERIA =====
+  {code:"NGAPP",name:"Apapa",full:"Apapa Port (Lagos)",type:"port",country:"Nigeria",flag:"🇳🇬"},
+  {code:"NGTPZ",name:"Tin Can Island",full:"Tin Can Island Port",type:"port",country:"Nigeria",flag:"🇳🇬"},
+  {code:"LOS",name:"Lagos",full:"Murtala Muhammed International Airport",type:"airport",country:"Nigeria",flag:"🇳🇬"},
+  {code:"ABV",name:"Abuja",full:"Nnamdi Azikiwe International Airport",type:"airport",country:"Nigeria",flag:"🇳🇬"},
+
+  // ===== MOROCCO =====
+  {code:"MATNG",name:"Tanger Med",full:"Tanger Med Port",type:"port",country:"Morocco",flag:"🇲🇦"},
+  {code:"MACAS",name:"Casablanca",full:"Casablanca Port",type:"port",country:"Morocco",flag:"🇲🇦"},
+  {code:"CMN",name:"Casablanca",full:"Mohammed V International Airport",type:"airport",country:"Morocco",flag:"🇲🇦"},
+  {code:"RAK",name:"Marrakech",full:"Marrakech Menara Airport",type:"airport",country:"Morocco",flag:"🇲🇦"},
+
+  // ===== JORDAN =====
+  {code:"JOAQJ",name:"Aqaba",full:"Port of Aqaba",type:"port",country:"Jordan",flag:"🇯🇴"},
+  {code:"AMM",name:"Amman",full:"Queen Alia International Airport",type:"airport",country:"Jordan",flag:"🇯🇴"},
+
+  // ===== ISRAEL =====
+  {code:"ILHFA",name:"Haifa",full:"Port of Haifa",type:"port",country:"Israel",flag:"🇮🇱"},
+  {code:"ILASH",name:"Ashdod",full:"Port of Ashdod",type:"port",country:"Israel",flag:"🇮🇱"},
+  {code:"TLV",name:"Tel Aviv",full:"Ben Gurion International Airport",type:"airport",country:"Israel",flag:"🇮🇱"},
+
+  // ===== ETHIOPIA =====
+  {code:"ADD",name:"Addis Ababa",full:"Addis Ababa Bole International Airport",type:"airport",country:"Ethiopia",flag:"🇪🇹"},
+
+  // ===== DJIBOUTI =====
+  {code:"DJJIB",name:"Djibouti",full:"Port of Djibouti",type:"port",country:"Djibouti",flag:"🇩🇯"},
+  {code:"JIB",name:"Djibouti",full:"Djibouti-Ambouli International Airport",type:"airport",country:"Djibouti",flag:"🇩🇯"},
+
+  // ===== PANAMA =====
+  {code:"PACRC",name:"Cristobal",full:"Port of Cristobal",type:"port",country:"Panama",flag:"🇵🇦"},
+  {code:"PABAL",name:"Balboa",full:"Port of Balboa",type:"port",country:"Panama",flag:"🇵🇦"},
+  {code:"PTY",name:"Panama City",full:"Tocumen International Airport",type:"airport",country:"Panama",flag:"🇵🇦"},
+
+  // ===== MEXICO =====
+  {code:"MXLZC",name:"Lazaro Cardenas",full:"Port of Lázaro Cárdenas",type:"port",country:"Mexico",flag:"🇲🇽"},
+  {code:"MXVER",name:"Veracruz",full:"Port of Veracruz",type:"port",country:"Mexico",flag:"🇲🇽"},
+  {code:"MEX",name:"Mexico City",full:"Mexico City International Airport",type:"airport",country:"Mexico",flag:"🇲🇽"},
+  {code:"CUN",name:"Cancun",full:"Cancún International Airport",type:"airport",country:"Mexico",flag:"🇲🇽"},
+
+  // ===== NEW ZEALAND =====
+  {code:"NZAKL",name:"Auckland",full:"Port of Auckland",type:"port",country:"New Zealand",flag:"🇳🇿"},
+  {code:"AKL",name:"Auckland",full:"Auckland Airport",type:"airport",country:"New Zealand",flag:"🇳🇿"},
+  {code:"CHC",name:"Christchurch",full:"Christchurch Airport",type:"airport",country:"New Zealand",flag:"🇳🇿"},
+
+  // ===== IRAN =====
+  {code:"IRBND",name:"Bandar Abbas",full:"Shahid Rajaee Port",type:"port",country:"Iran",flag:"🇮🇷"},
+  {code:"IKA",name:"Tehran",full:"Imam Khomeini International Airport",type:"airport",country:"Iran",flag:"🇮🇷"},
+  {code:"THR",name:"Tehran Mehrabad",full:"Mehrabad International Airport",type:"airport",country:"Iran",flag:"🇮🇷"},
+
+  // ===== IRAQ =====
+  {code:"IQUMQ",name:"Umm Qasr",full:"Port of Umm Qasr",type:"port",country:"Iraq",flag:"🇮🇶"},
+  {code:"BGW",name:"Baghdad",full:"Baghdad International Airport",type:"airport",country:"Iraq",flag:"🇮🇶"},
+  {code:"BSR",name:"Basra",full:"Basra International Airport",type:"airport",country:"Iraq",flag:"🇮🇶"},
+
+  // ===== RUSSIA =====
+  {code:"RUNVS",name:"Novorossiysk",full:"Port of Novorossiysk",type:"port",country:"Russia",flag:"🇷🇺"},
+  {code:"RULED",name:"St. Petersburg",full:"Port of Saint Petersburg",type:"port",country:"Russia",flag:"🇷🇺"},
+  {code:"SVO",name:"Moscow Sheremetyevo",full:"Sheremetyevo International Airport",type:"airport",country:"Russia",flag:"🇷🇺"},
+  {code:"DME",name:"Moscow Domodedovo",full:"Domodedovo International Airport",type:"airport",country:"Russia",flag:"🇷🇺"},
+  {code:"LED",name:"St. Petersburg",full:"Pulkovo Airport",type:"airport",country:"Russia",flag:"🇷🇺"},
+
+  // ===== SWEDEN =====
+  {code:"SEGOT",name:"Gothenburg",full:"Port of Gothenburg",type:"port",country:"Sweden",flag:"🇸🇪"},
+  {code:"ARN",name:"Stockholm",full:"Stockholm Arlanda Airport",type:"airport",country:"Sweden",flag:"🇸🇪"},
+
+  // ===== FINLAND =====
+  {code:"FIHEL",name:"Helsinki",full:"Port of Helsinki",type:"port",country:"Finland",flag:"🇫🇮"},
+  {code:"HEL",name:"Helsinki",full:"Helsinki Airport",type:"airport",country:"Finland",flag:"🇫🇮"},
+
+  // ===== PORTUGAL =====
+  {code:"PTLEI",name:"Leixões",full:"Port of Leixões (Porto)",type:"port",country:"Portugal",flag:"🇵🇹"},
+  {code:"PTLIS",name:"Lisbon",full:"Port of Lisbon",type:"port",country:"Portugal",flag:"🇵🇹"},
+  {code:"LIS",name:"Lisbon",full:"Lisbon Humberto Delgado Airport",type:"airport",country:"Portugal",flag:"🇵🇹"},
+
+  // ===== SWITZERLAND =====
+  {code:"ZRH",name:"Zurich",full:"Zurich Airport",type:"airport",country:"Switzerland",flag:"🇨🇭"},
+  {code:"GVA",name:"Geneva",full:"Geneva Airport",type:"airport",country:"Switzerland",flag:"🇨🇭"},
+
+  // ===== AUSTRIA =====
+  {code:"VIE",name:"Vienna",full:"Vienna International Airport",type:"airport",country:"Austria",flag:"🇦🇹"},
+
+  // ===== DENMARK =====
+  {code:"DKAAR",name:"Aarhus",full:"Port of Aarhus",type:"port",country:"Denmark",flag:"🇩🇰"},
+  {code:"CPH",name:"Copenhagen",full:"Copenhagen Airport",type:"airport",country:"Denmark",flag:"🇩🇰"},
+
+  // ===== COLOMBO =====
+  {code:"PECLL",name:"Callao",full:"Port of Callao (Lima)",type:"port",country:"Peru",flag:"🇵🇪"},
+  {code:"LIM",name:"Lima",full:"Jorge Chávez International Airport",type:"airport",country:"Peru",flag:"🇵🇪"},
+
+  // ===== CHILE =====
+  {code:"CLVAP",name:"Valparaiso",full:"Port of Valparaíso",type:"port",country:"Chile",flag:"🇨🇱"},
+  {code:"SCL",name:"Santiago",full:"Comodoro Arturo Merino Benítez International Airport",type:"airport",country:"Chile",flag:"🇨🇱"},
+
+  // ===== ARGENTINA =====
+  {code:"ARBUE",name:"Buenos Aires",full:"Port of Buenos Aires",type:"port",country:"Argentina",flag:"🇦🇷"},
+  {code:"EZE",name:"Buenos Aires",full:"Ezeiza International Airport",type:"airport",country:"Argentina",flag:"🇦🇷"},
+
+  // ===== COLOMBIA =====
+  {code:"COBOG",name:"Bogota",full:"El Dorado International Airport",type:"airport",country:"Colombia",flag:"🇨🇴"},
+  {code:"COCTG",name:"Cartagena",full:"Port of Cartagena",type:"port",country:"Colombia",flag:"🇨🇴"},
+
+  // ===== MYANMAR =====
+  {code:"MMRGN",name:"Rangoon (Yangon)",full:"Port of Yangon",type:"port",country:"Myanmar",flag:"🇲🇲"},
+  {code:"RGN",name:"Yangon",full:"Yangon International Airport",type:"airport",country:"Myanmar",flag:"🇲🇲"},
+
+  // ===== CAMBODIA =====
+  {code:"PNH",name:"Phnom Penh",full:"Phnom Penh International Airport",type:"airport",country:"Cambodia",flag:"🇰🇭"},
+  {code:"REP",name:"Siem Reap",full:"Siem Reap-Angkor International Airport",type:"airport",country:"Cambodia",flag:"🇰🇭"},
+
+  // ===== IRELAND =====
+  {code:"IEDUB",name:"Dublin",full:"Port of Dublin",type:"port",country:"Ireland",flag:"🇮🇪"},
+  {code:"DUB",name:"Dublin",full:"Dublin Airport",type:"airport",country:"Ireland",flag:"🇮🇪"},
+
+  // ===== ETHIOPIA / SOMALIA =====
+  {code:"MGQ",name:"Mogadishu",full:"Aden Adde International Airport",type:"airport",country:"Somalia",flag:"🇸🇴"},
+
+  // ===== TANZANIA =====
+  {code:"TZDAR",name:"Dar es Salaam",full:"Port of Dar es Salaam",type:"port",country:"Tanzania",flag:"🇹🇿"},
+  {code:"DAR",name:"Dar es Salaam",full:"Julius Nyerere International Airport",type:"airport",country:"Tanzania",flag:"🇹🇿"},
+
+  // ===== GHANA =====
+  {code:"GHTEM",name:"Tema",full:"Port of Tema",type:"port",country:"Ghana",flag:"🇬🇭"},
+  {code:"ACC",name:"Accra",full:"Kotoka International Airport",type:"airport",country:"Ghana",flag:"🇬🇭"},
+
+  // ===== IVORY COAST =====
+  {code:"CIABJ",name:"Abidjan",full:"Port of Abidjan",type:"port",country:"Ivory Coast",flag:"🇨🇮"},
+  {code:"ABJ",name:"Abidjan",full:"Félix-Houphouët-Boigny International Airport",type:"airport",country:"Ivory Coast",flag:"🇨🇮"},
+
+  // ===== SENEGAL =====
+  {code:"SNDKR",name:"Dakar",full:"Port of Dakar",type:"port",country:"Senegal",flag:"🇸🇳"},
+  {code:"DSS",name:"Dakar",full:"Blaise Diagne International Airport",type:"airport",country:"Senegal",flag:"🇸🇳"},
+
+  // ===== MYANMAR =====
+  {code:"MMTLN",name:"Thilawa",full:"Thilawa Port",type:"port",country:"Myanmar",flag:"🇲🇲"},
+
+  // ===== MONGOLIA =====
+  {code:"ULN",name:"Ulaanbaatar",full:"Chinggis Khaan International Airport",type:"airport",country:"Mongolia",flag:"🇲🇳"},
+];
+
+// =============================================
+// App Logic
+// =============================================
+let currentFilter = 'all';
+
+function updateStats() {
+  const ports = DB.filter(x => x.type === 'port').length;
+  const airports = DB.filter(x => x.type === 'airport').length;
+  const countries = new Set(DB.map(x => x.country)).size;
+  document.getElementById('totalCount').textContent = DB.length;
+  document.getElementById('portCount').textContent = ports;
+  document.getElementById('airportCount').textContent = airports;
+  document.getElementById('countryCount').textContent = countries;
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) doSearch();
+}
+
+function quickSearch(term) {
+  document.getElementById('searchInput').value = term;
+  doSearch();
+}
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!q) return;
+
+  let results = DB.filter(item => {
+    const matchFilter = currentFilter === 'all' || item.type === currentFilter;
+    const matchQuery =
+      item.code.toLowerCase().includes(q) ||
+      item.name.toLowerCase().includes(q) ||
+      item.full.toLowerCase().includes(q) ||
+      item.country.toLowerCase().includes(q);
+    return matchFilter && matchQuery;
+  });
+
+  renderResults(results, q);
+}
+
+function renderResults(results, q) {
+  const grid = document.getElementById('resultsGrid');
+  const header = document.getElementById('resultsHeader');
+  const countEl = document.getElementById('countDisplay');
+
+  header.style.display = 'flex';
+  countEl.textContent = results.length;
+
+  if (results.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>لا توجد نتائج</h3>
+        <p>لم يتم العثور على نتائج لـ "<strong>${q}</strong>"<br>جرب البحث بطريقة مختلفة أو كود آخر</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = results.map(item => {
+    const typeLabel = item.type === 'port' ? 'ميناء بحري' : 'مطار';
+    const typeClass = item.type;
+    const icon = item.type === 'port' ? '⚓' : '✈️';
+    return `
+      <div class="result-card">
+        <div class="type-badge ${typeClass}">${icon}</div>
+        <div class="result-info">
+          <div class="result-name">${item.code}</div>
+          <div class="result-fullname">${item.full}</div>
+          <span class="type-tag ${typeClass}">${typeLabel}</span>
+        </div>
+        <div class="result-right">
+          <div class="result-flag">${item.flag}</div>
+          <div class="result-country">${item.country}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Enter key support
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// Live search
+document.getElementById('searchInput').addEventListener('input', e => {
+  if (e.target.value.trim().length >= 2) doSearch();
+  else if (!e.target.value.trim()) {
+    document.getElementById('resultsHeader').style.display = 'none';
+    document.getElementById('resultsGrid').innerHTML = `
+      <div class="welcome-state">
+        <div class="icon">🗺️</div>
+        <h3>ابدأ البحث عن أي ميناء أو مطار</h3>
+        <p>اكتب الاسم أو الكود في خانة البحث</p>
+        <div class="examples">
+          <span class="example-tag" onclick="quickSearch('MUNDRA')">MUNDRA</span>
+          <span class="example-tag" onclick="quickSearch('JFK')">JFK</span>
+          <span class="example-tag" onclick="quickSearch('Dubai')">Dubai</span>
+          <span class="example-tag" onclick="quickSearch('Rotterdam')">Rotterdam</span>
+          <span class="example-tag" onclick="quickSearch('Singapore')">Singapore</span>
+          <span class="example-tag" onclick="quickSearch('Hamburg')">Hamburg</span>
+          <span class="example-tag" onclick="quickSearch('Jebel Ali')">Jebel Ali</span>
+          <span class="example-tag" onclick="quickSearch('LAX')">LAX</span>
+        </div>
+      </div>`;
+  }
+});
+
+updateStats();
+</script>
+</body>
+</html>
