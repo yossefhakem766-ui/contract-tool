@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract Data Entry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root {
+    --bg:#f4f1eb;--surface:#faf8f4;--dark:#1a1612;--mid:#4a3f35;--dim:#9a8e84;
+    --border:#ddd8d0;--accent:#c8601a;--accent2:#2a6496;--green:#2d7a4f;
+    --gold:#b8860b;--main-color:#1a4a6e;--charges-color:#6e2d1a;
+    --shadow:rgba(26,22,18,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--dark);font-family:'Syne',sans-serif;min-height:100vh;padding:24px 16px 60px;font-size:13px;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+  .container{position:relative;z-index:1;max-width:960px;margin:0 auto;}
+
+  /* Header */
+  .header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--dark);}
+  .header-tag{display:inline-block;background:var(--accent);color:white;font-size:.58rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:3px 8px;margin-bottom:5px;}
+  h1{font-size:1.5rem;font-weight:800;color:var(--dark);letter-spacing:-.5px;}
+  .header-sub{font-size:.65rem;color:var(--dim);margin-top:3px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+  .offline-pill{display:flex;align-items:center;gap:5px;background:var(--green);color:white;font-size:.62rem;font-weight:700;letter-spacing:1.5px;padding:5px 11px;border-radius:2px;}
+  .offline-pill::before{content:'●';font-size:.5rem;}
+  #dateBadge{font-size:.6rem;color:var(--dim);margin-top:5px;font-family:'JetBrains Mono',monospace;text-align:right;}
+
+  /* Tabs */
+  .tabs{display:flex;border-bottom:2px solid var(--dark);margin-bottom:0;}
+  .tab-btn{padding:9px 22px;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:var(--dim);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{color:var(--dark);}
+  .tab-btn.active{color:var(--dark);border-bottom-color:var(--accent);background:var(--surface);}
+  .tab-count{background:var(--accent);color:white;font-size:.55rem;font-weight:800;padding:1px 5px;border-radius:8px;min-width:18px;text-align:center;}
+  .tab-pane{display:none;padding-top:18px;}
+  .tab-pane.active{display:block;}
+
+  /* Layout */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:start;}
+  .section-wrap{display:flex;flex-direction:column;}
+  .section-label{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:3px 3px 0 0;font-size:.65rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:white;}
+  .main-label{background:var(--main-color);}
+  .charges-label{background:var(--charges-color);}
+  .card{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;box-shadow:0 4px 18px var(--shadow);overflow:hidden;}
+  .sub-header{background:rgba(0,0,0,.04);border-bottom:1px solid var(--border);padding:6px 14px;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+  .card-body{padding:14px;}
+  .inner-div{border:none;border-top:1px dashed var(--border);margin:0 14px;}
+
+  /* Fields */
+  .fields-grid{display:grid;gap:10px;}
+  .fg-1{grid-template-columns:1fr;}
+  .fg-2{grid-template-columns:1fr 1fr;}
+  .span2{grid-column:span 2;}
+  .field-group{display:flex;flex-direction:column;gap:3px;}
+  .field-label{font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);}
+  .field-required{color:var(--accent);}
+  .field-input{background:white;border:1.5px solid var(--border);border-radius:3px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--dark);transition:all .2s;outline:none;width:100%;}
+  .field-input:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(42,100,150,.1);}
+  .field-input::placeholder{color:#c0b8b0;font-size:.75rem;}
+  .field-input.auto-field{background:#eef3f8;border-color:var(--accent2);color:var(--accent2);font-weight:700;cursor:default;}
+  .field-input.auto-field:focus{box-shadow:none;}
+  .field-input.amount-field:not(:placeholder-shown){border-color:var(--main-color);background:#f0f5fa;}
+  select.field-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a3f35' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 9px center;padding-left:26px;}
+  .auto-badge{font-size:.54rem;font-weight:700;letter-spacing:1px;color:var(--accent2);text-transform:uppercase;}
+  .auto-badge::before{content:'⚡ ';}
+  .field-hint{font-size:.56rem;color:var(--dim);}
+  .live-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.54rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;}
+  .live-indicator::before{content:'●';animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .formula-box{background:#eef3f8;border:1px solid var(--border);border-radius:3px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--mid);line-height:1.6;}
+  .copy-btn{display:inline-flex;align-items:center;gap:3px;background:rgba(42,100,150,.08);border:1px solid rgba(42,100,150,.2);border-radius:3px;padding:3px 8px;color:var(--accent2);font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;margin-top:2px;width:fit-content;}
+  .copy-btn:hover{background:rgba(42,100,150,.15);}
+  .copy-btn.copied{background:rgba(45,122,79,.15);border-color:var(--green);color:var(--green);}
+
+  /* Swift status box */
+  .swift-status{padding:11px 14px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:.92rem;font-weight:800;letter-spacing:2px;text-align:center;transition:all .3s;}
+  .swift-status.neutral{background:#f0f4f8;border:1.5px solid var(--border);color:var(--dim);}
+  .swift-status.comm{background:#e8f5ee;border:1.5px solid var(--green);color:var(--green);}
+  .swift-status.no-comm{background:#fff3ee;border:1.5px solid #e07050;color:#c04020;}
+
+  /* Output */
+  .output-card{background:var(--dark);border-radius:4px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.2);}
+  .output-header{padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;}
+  .output-header h2{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+  .output-body{padding:14px;}
+  .ref-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .ref-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;padding:10px 12px;position:relative;overflow:hidden;}
+  .ref-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .ref-item.ref-contract::before{background:#7c4dff;}
+  .ref-item.ref-our::before{background:var(--accent);}
+  .ref-item.ref-form::before{background:var(--gold);}
+  .ref-label{font-size:.55rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:4px;}
+  .ref-value{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;letter-spacing:1px;word-break:break-all;}
+  .ref-contract .ref-value{color:#b39dff;}
+  .ref-our .ref-value{color:#ff8c5a;}
+  .ref-form .ref-value{color:#ffd700;}
+  .ref-empty{color:rgba(255,255,255,.2);font-style:italic;font-size:.75rem;}
+  .summary-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .summary-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:10px 12px;}
+  .summary-block-title{font-size:.53rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:8px;}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:8px;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-key{font-size:.6rem;color:rgba(255,255,255,.35);text-transform:uppercase;flex-shrink:0;}
+  .summary-val{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:rgba(255,255,255,.82);font-weight:500;text-align:right;}
+  .summary-val.empty{color:rgba(255,255,255,.2);font-style:italic;}
+  .summary-val.highlight{color:#6dffaa;font-weight:700;}
+  .summary-val.comm-yes{color:#6dffaa;font-weight:700;}
+  .summary-val.comm-no{color:#ff8c70;font-weight:700;}
+
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .btn{display:flex;align-items:center;gap:5px;border:none;border-radius:3px;padding:9px 16px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+  .btn-primary{background:var(--accent);color:white;}
+  .btn-primary:hover{background:#a04818;transform:translateY(-1px);}
+  .btn-secondary{background:var(--accent2);color:white;}
+  .btn-secondary:hover{background:#1e4e6e;transform:translateY(-1px);}
+  .btn-danger{background:#8b2020;color:white;}
+  .btn-danger:hover{background:#6b1818;transform:translateY(-1px);}
+
+  /* Daily Ops */
+  .ops-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+  .ops-toolbar-left{display:flex;align-items:center;gap:8px;}
+  .ops-date-filter{background:white;border:1.5px solid var(--border);border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--dark);outline:none;}
+  .ops-date-filter:focus{border-color:var(--accent2);}
+  .ops-empty{text-align:center;padding:50px 20px;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.8rem;border:2px dashed var(--border);border-radius:4px;}
+  .ops-empty-icon{font-size:2rem;margin-bottom:10px;}
+  .ops-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.72rem;}
+  .ops-table th{background:var(--dark);color:rgba(255,255,255,.6);padding:8px 12px;text-align:left;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+  .ops-table th:first-child{border-radius:3px 0 0 0;}
+  .ops-table th:last-child{border-radius:0 3px 0 0;}
+  .ops-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--dark);vertical-align:top;}
+  .ops-table tr:last-child td{border-bottom:none;}
+  .ops-table tr:hover td{background:rgba(42,100,150,.05);}
+  .ops-table td.ref-col{color:var(--accent);font-weight:700;font-size:.68rem;word-break:break-all;max-width:160px;}
+  .ops-table td.contract-col{color:#7c4dff;font-weight:700;}
+  .ops-row-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--dim);color:white;border-radius:50%;font-size:.6rem;font-weight:800;flex-shrink:0;}
+  .ops-copy-row{padding:2px 6px;background:rgba(42,100,150,.08);border:1px solid rgba(42,100,150,.2);border-radius:2px;color:var(--accent2);font-size:.55rem;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+  .ops-copy-row:hover{background:rgba(42,100,150,.18);}
+  .ops-del-row{padding:2px 6px;background:rgba(139,32,32,.08);border:1px solid rgba(139,32,32,.2);border-radius:2px;color:#8b2020;font-size:.55rem;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;margin-left:4px;}
+  .ops-del-row:hover{background:rgba(139,32,32,.18);}
+  .ops-stats{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .ops-stat{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:8px 14px;}
+  .ops-stat-label{font-size:.55rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+  .ops-stat-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--dark);margin-top:2px;}
+
+  /* Signature */
+  .signature-bar{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:24px;}
+  .sig-line{flex:1;height:1px;background:var(--border);}
+  .sig-box{text-align:center;padding:6px 16px;border:1px solid var(--border);border-radius:2px;user-select:none;-webkit-user-select:none;}
+  .sig-by{font-size:.52rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+  .sig-name{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;color:var(--accent);letter-spacing:2px;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--dark);color:white;padding:9px 20px;border-radius:4px;font-size:.75rem;font-weight:600;letter-spacing:1px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;border-left:3px solid var(--green);white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:640px){
+    .two-col,.fg-2,.summary-cols,.ref-grid{grid-template-columns:1fr;}
+    .span2{grid-column:span 1;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="header-tag">Internal Tool</div>
+      <h1>Contract Data Entry</h1>
+      <div class="header-sub">AUTO-REF GENERATOR • COMMISSION CALCULATOR • DAILY LOG</div>
+    </div>
+    <div>
+      <div class="offline-pill">OFFLINE READY</div>
+      <div id="dateBadge"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('entry',this)">📋 &nbsp;Data Entry</button>
+    <button class="tab-btn" onclick="switchTab('ops',this)">📅 &nbsp;Daily Operations <span class="tab-count" id="opsCount">0</span></button>
+    <button class="tab-btn" onclick="switchTab('swift',this)">✉️ &nbsp;SWIFT Message</button>
+  </div>
+
+  <!-- ══ TAB 1: DATA ENTRY ══ -->
+  <div class="tab-pane active" id="tab-entry">
+    <div class="two-col">
+
+      <!-- MAIN -->
+      <div class="section-wrap">
+        <div class="section-label main-label">📋 &nbsp;Main</div>
+        <div class="card">
+
+          <div class="sub-header">Identifiers</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Branch Number</label>
+                <input type="text" class="field-input" id="branchNum" placeholder="e.g. 140" maxlength="10" oninput="autoGenerate()"/>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Ticket Number</label>
+                <input type="text" class="field-input" id="ticketNum" placeholder="e.g. 1238323" maxlength="20" oninput="autoGenerate()"/>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Customer ID</label>
+                <input type="text" class="field-input" id="customerId" placeholder="e.g. 1293847" maxlength="20" oninput="autoGenerate()"/>
+              </div>
+
+              <div class="fields-grid fg-2" style="gap:10px;">
+                <div class="field-group">
+                  <label class="field-label"><span class="field-required">* </span>Currency</label>
+                  <select class="field-input" id="currency" onchange="calcCommission(); updateSummary()">
+                    <option value="">— Select —</option>
+                    <option value="USD">USD — Dollar</option>
+                    <option value="EUR">EUR — Euro</option>
+                    <option value="GBP">GBP — Pound</option>
+                    <option value="EGP">EGP — Egyptian £</option>
+                    <option value="AED">AED — Dirham</option>
+                    <option value="SAR">SAR — Riyal</option>
+                    <option value="JPY">JPY — Yen</option>
+                    <option value="CNY">CNY — Yuan</option>
+                    <option value="CHF">CHF — Swiss Fr.</option>
+                    <option value="CAD">CAD — CA Dollar</option>
+                    <option value="AUD">AUD — AU Dollar</option>
+                    <option value="INR">INR — Rupee</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label"><span class="field-required">* </span>Document Amount</label>
+                  <input type="number" class="field-input amount-field" id="docAmount" placeholder="e.g. 1000" min="0" step="0.01" oninput="calcCommission(); updateSummary()"/>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">References</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Contract Number</label>
+                <input type="text" class="field-input" id="contractNum" placeholder="e.g. CNT-2024-00123" oninput="updateSummary()"/>
+                <button class="copy-btn" onclick="copyField('contractNum', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">OUR REF</label>
+                <div class="auto-badge">TFCOL6 + Branch + Ticket</div>
+                <input type="text" class="field-input auto-field" id="ourRef" readonly placeholder="Fill Branch & Ticket…"/>
+                <button class="copy-btn" onclick="copyField('ourRef', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">MCBE</label>
+                <input type="text" class="field-input" id="mcbeNum" placeholder="e.g. MCBE-00123" oninput="updateSummary()"/>
+                <button class="copy-btn" onclick="copyField('mcbeNum', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Bank Reference</label>
+                <input type="text" class="field-input" id="bankRef" placeholder="e.g. BNK-00123" oninput="updateSummary(); updateSwiftPreview()"/>
+                <button class="copy-btn" onclick="copyField('bankRef', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">FORM 4 REF</label>
+                <div class="auto-badge">TFCOL6 + Branch + Ticket - Customer</div>
+                <input type="text" class="field-input auto-field" id="form4Ref" readonly placeholder="Fill all fields…"/>
+                <button class="copy-btn" onclick="copyField('form4Ref', this)">⎘ Copy</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CHARGES -->
+      <div class="section-wrap">
+        <div class="section-label charges-label">💰 &nbsp;Charges</div>
+        <div class="card">
+
+          <div class="sub-header">Exchange Rate</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+              <div class="field-group">
+                <label class="field-label">Exchange Rate (to EGP)</label>
+                <input type="number" class="field-input" id="exchRate" placeholder="e.g. 50.75" min="0" step="0.01" oninput="calcCommission()"/>
+                <span class="field-hint">Enter today's rate manually — no auto-save</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">Commission</div>
+          <div class="card-body">
+            <div class="fields-grid fg-2">
+
+              <div class="field-group">
+                <label class="field-label">Commission Rate</label>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="number" class="field-input" id="commRate" placeholder="e.g. 1" min="0" step="0.001" oninput="calcCommission()" style="flex:1;"/>
+                  <div style="display:flex;border:1.5px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;">
+                    <button id="btnPercent" onclick="setUnit('%')" style="padding:8px 10px;background:var(--accent2);color:white;border:none;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;cursor:pointer;">%</button>
+                    <button id="btnPermille" onclick="setUnit('‰')" style="padding:8px 10px;background:white;color:var(--dim);border:none;border-left:1.5px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;cursor:pointer;">‰</button>
+                  </div>
+                </div>
+                <span class="field-hint" id="commHint">% = per hundred &nbsp;|&nbsp; ‰ = per thousand</span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Commission (EGP)</label>
+                <div class="live-indicator">Live</div>
+                <input type="text" class="field-input auto-field" id="commResult" readonly placeholder="Fill all fields…"/>
+                <button class="copy-btn" onclick="copyField('commResult', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group span2">
+                <div class="formula-box" id="formulaDisplay">Amount &times; Exch. Rate &times; Comm<br>&divide; 100 = <strong>EGP</strong></div>
+              </div>
+
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">Swift Commission</div>
+          <div class="card-body">
+            <div class="fields-grid fg-2">
+
+              <div class="field-group">
+                <label class="field-label">Document Date</label>
+                <input type="text" class="field-input" id="swiftDate" placeholder="23/11/2025" oninput="checkSwiftComm()"/>
+                <span class="field-hint">DD/MM/YYYY &nbsp;or&nbsp; YYYY/MM/DD &nbsp;or&nbsp; MM/DD/YYYY</span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Swift Comm Status</label>
+                <div class="auto-badge">Auto from date</div>
+                <div class="swift-status neutral" id="swiftCommStatus">— Enter date —</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary -->
+    <div class="output-card">
+      <div class="output-header">
+        <h2>📋 Full Summary</h2>
+        <button class="copy-btn" onclick="copyAll()" style="margin-top:0;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.55);">⎘ Copy All</button>
+      </div>
+      <div class="output-body">
+
+        <div class="ref-grid">
+          <div class="ref-item ref-contract">
+            <div class="ref-label">Contract No.</div>
+            <div class="ref-value" id="summaryContract"><span class="ref-empty">pending…</span></div>
+          </div>
+          <div class="ref-item ref-our">
+            <div class="ref-label">OUR REF</div>
+            <div class="ref-value" id="summaryOurRef"><span class="ref-empty">pending…</span></div>
+          </div>
+          <div class="ref-item ref-form">
+            <div class="ref-label">FORM 4 REF</div>
+            <div class="ref-value" id="summaryForm4Ref"><span class="ref-empty">pending…</span></div>
+          </div>
+        </div>
+
+        <div class="summary-cols">
+          <div class="summary-block">
+            <div class="summary-block-title">📋 Main</div>
+            <div class="summary-row"><span class="summary-key">Branch</span><span class="summary-val empty" id="sBranch">—</span></div>
+            <div class="summary-row"><span class="summary-key">Ticket</span><span class="summary-val empty" id="sTicket">—</span></div>
+            <div class="summary-row"><span class="summary-key">Customer ID</span><span class="summary-val empty" id="sCustomer">—</span></div>
+            <div class="summary-row"><span class="summary-key">Bank Ref</span><span class="summary-val empty" id="sBankRef">—</span></div>
+            <div class="summary-row"><span class="summary-key">MCBE</span><span class="summary-val empty" id="sMcbe">—</span></div>
+            <div class="summary-row"><span class="summary-key">Currency</span><span class="summary-val empty" id="sCurrency">—</span></div>
+            <div class="summary-row"><span class="summary-key">Amount</span><span class="summary-val empty" id="sAmount">—</span></div>
+            <div class="summary-row"><span class="summary-key">Date</span><span class="summary-val" id="sDate">—</span></div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block-title">💰 Charges</div>
+            <div class="summary-row"><span class="summary-key">Exch. Rate</span><span class="summary-val empty" id="sRate">—</span></div>
+            <div class="summary-row"><span class="summary-key">Comm. Rate</span><span class="summary-val empty" id="sCommRate">—</span></div>
+            <div class="summary-row"><span class="summary-key">Commission</span><span class="summary-val empty highlight" id="sComm">—</span></div>
+            <div class="summary-row"><span class="summary-key">Swift Comm</span><span class="summary-val empty" id="sSwiftComm">—</span></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="copyAll()">⎘ Copy Full Entry</button>
+          <button class="btn btn-secondary" onclick="resetForm()">↺ New Entry</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end tab-entry -->
+
+  <!-- ══ TAB 2: DAILY OPERATIONS ══ -->
+  <div class="tab-pane" id="tab-ops">
+
+    <div class="ops-stats">
+      <div class="ops-stat">
+        <div class="ops-stat-label">Total Operations</div>
+        <div class="ops-stat-val" id="statTotal">0</div>
+      </div>
+      <div class="ops-stat">
+        <div class="ops-stat-label">Today</div>
+        <div class="ops-stat-val" id="statToday">0</div>
+      </div>
+    </div>
+
+    <div class="ops-toolbar">
+      <div class="ops-toolbar-left">
+        <input type="date" class="ops-date-filter" id="dateFilter" oninput="renderOps()" title="Filter by date"/>
+        <button class="copy-btn" onclick="clearDateFilter()" style="margin-top:0;">✕ Clear Filter</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="copy-btn" onclick="copyAllOps()" style="margin-top:0;">⎘ Copy All Ops</button>
+        <button class="btn btn-danger" onclick="clearAllOps()" style="padding:5px 12px;font-size:.62rem;">🗑 Clear All</button>
+      </div>
+    </div>
+
+    <div id="opsContainer">
+      <div class="ops-empty">
+        <div class="ops-empty-icon">📭</div>
+        No operations yet.<br>Fill in Data Entry and click <strong>Copy Full Entry</strong> to log.
+      </div>
+    </div>
+
+  </div><!-- end tab-ops -->
+
+  <!-- ══ TAB 3: SWIFT MESSAGE ══ -->
+  <div class="tab-pane" id="tab-swift">
+
+    <div class="two-col" style="margin-bottom:14px;">
+
+      <!-- Live preview -->
+      <div class="section-wrap">
+        <div class="section-label" style="background:#1a5c3a;">✉️ &nbsp;SWIFT Message Preview</div>
+        <div class="card">
+          <div class="sub-header">Auto-generated from Data Entry</div>
+          <div class="card-body">
+            <div style="
+              background:#f8fff8; border:1.5px solid #a8d5b5; border-radius:3px;
+              padding:16px 18px; font-family:'JetBrains Mono',monospace; font-size:0.82rem;
+              color:var(--dark); line-height:2; letter-spacing:0.3px; white-space:pre-wrap;
+              min-height:140px;
+            " id="swiftPreview">Fill in Data Entry fields to generate message…</div>
+            <button class="copy-btn" onclick="copySwift(this)" style="margin-top:10px;">⎘ Copy Message</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fields -->
+      <div class="section-wrap">
+        <div class="section-label" style="background:#1a5c3a;">📝 &nbsp;Message Fields</div>
+        <div class="card">
+          <div class="sub-header">From Data Entry (read-only)</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+
+              <div class="field-group">
+                <label class="field-label">OUR REF</label>
+                <input type="text" class="field-input auto-field" id="swiftOurRef" readonly placeholder="From Data Entry…"/>
+              </div>
+
+              <div class="fields-grid fg-2" style="gap:10px;">
+                <div class="field-group">
+                  <label class="field-label">Currency</label>
+                  <input type="text" class="field-input auto-field" id="swiftCurrency" readonly placeholder="From Data Entry…"/>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Amount</label>
+                  <input type="text" class="field-input auto-field" id="swiftAmount" readonly placeholder="From Data Entry…"/>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">From Data Entry (read-only)</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+              <div class="field-group">
+                <label class="field-label">YOUR REF (Bank Reference)</label>
+                <input type="text" class="field-input auto-field" id="swiftYourRef" readonly placeholder="From Bank Reference in Data Entry…"/>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end tab-swift -->
+
+  <!-- Signature -->
+  <div class="signature-bar">
+    <div class="sig-line"></div>
+    <div class="sig-box" oncontextmenu="return false;">
+      <div class="sig-by">Designed &amp; Built by</div>
+      <div class="sig-name" id="sigName">Youssef Hakeem</div>
+    </div>
+    <div class="sig-line"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast">Copied ✓</div>
+
+<script>
+const PREFIX = 'TFCOL6';
+const SWIFT_CUTOFF = new Date(2025, 10, 23); // 23 Nov 2025 (month is 0-based)
+let commUnit = '%';
+let operations = [];
+
+// ── Tab switching ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'ops') renderOps();
+  if (tab === 'swift') updateSwiftPreview();
+}
+
+// ── Unit toggle ──
+function setUnit(unit) {
+  commUnit = unit;
+  document.getElementById('btnPercent').style.background  = unit === '%' ? 'var(--accent2)' : 'white';
+  document.getElementById('btnPercent').style.color       = unit === '%' ? 'white' : 'var(--dim)';
+  document.getElementById('btnPermille').style.background = unit === '‰' ? 'var(--accent2)' : 'white';
+  document.getElementById('btnPermille').style.color      = unit === '‰' ? 'white' : 'var(--dim)';
+  document.getElementById('commHint').textContent = unit === '%'
+    ? '% = per hundred  (e.g. 1 = 1%)'
+    : '‰ = per thousand  (e.g. 1 = 0.1%)';
+  calcCommission();
+}
+
+// ── Parse date flexibly (DD/MM/YYYY, YYYY/MM/DD, MM/DD/YYYY) ──
+function parseFlexDate(str) {
+  if (!str) return null;
+  // normalize separators
+  const s = str.trim().replace(/[\.\-\\]/g, '/');
+  const parts = s.split('/');
+  if (parts.length !== 3) return null;
+  const [a, b, c] = parts.map(Number);
+  if (isNaN(a) || isNaN(b) || isNaN(c)) return null;
+
+  let d;
+  // YYYY/MM/DD
+  if (a > 1000) { d = new Date(a, b - 1, c); }
+  // DD/MM/YYYY
+  else if (c > 1000) { d = new Date(c, b - 1, a); }
+  // MM/DD/YYYY fallback
+  else { d = new Date(c, a - 1, b); }
+
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+// ── Swift Comm checker ──
+function checkSwiftComm() {
+  const val = document.getElementById('swiftDate').value;
+  const box = document.getElementById('swiftCommStatus');
+  const date = parseFlexDate(val);
+
+  if (!date) {
+    box.className = 'swift-status neutral';
+    box.textContent = '— Enter date —';
+    setVal('sSwiftComm', '');
+    return;
+  }
+
+  // Normalize to midnight for clean comparison
+  date.setHours(0,0,0,0);
+  const cutoff = new Date(SWIFT_CUTOFF); cutoff.setHours(0,0,0,0);
+
+  if (date >= cutoff) {
+    box.className = 'swift-status comm';
+    box.textContent = '✔ COMM';
+    const el = document.getElementById('sSwiftComm');
+    el.textContent = 'COMM'; el.className = 'summary-val comm-yes';
+  } else {
+    box.className = 'swift-status no-comm';
+    box.textContent = '✘ NO COMM';
+    const el = document.getElementById('sSwiftComm');
+    el.textContent = 'NO COMM'; el.className = 'summary-val comm-no';
+  }
+}
+
+// ── Auto generate refs ──
+function autoGenerate() {
+  const branch   = document.getElementById('branchNum').value.trim().toUpperCase();
+  const ticket   = document.getElementById('ticketNum').value.trim().toUpperCase();
+  const customer = document.getElementById('customerId').value.trim().toUpperCase();
+  document.getElementById('ourRef').value   = (branch && ticket) ? `${PREFIX}${branch}${ticket}` : '';
+  document.getElementById('form4Ref').value = (branch && ticket && customer) ? `${PREFIX}${branch}${ticket}-${customer}` : '';
+  updateSummary();
+}
+
+// ── Commission calc ──
+function calcCommission() {
+  const amount   = parseFloat(document.getElementById('docAmount').value)  || 0;
+  const rate     = parseFloat(document.getElementById('exchRate').value)   || 0;
+  const commVal  = parseFloat(document.getElementById('commRate').value)   || 0;
+  const currency = document.getElementById('currency').value || '?';
+  const formula  = document.getElementById('formulaDisplay');
+  const result   = document.getElementById('commResult');
+  const actualPct = commUnit === '‰' ? commVal / 10 : commVal;
+
+  if (amount && rate && commVal) {
+    const comm = amount * rate * actualPct / 100;
+    const unitLabel = commUnit === '‰' ? `${commVal}‰ (=${actualPct}%)` : `${commVal}%`;
+    result.value = comm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' EGP';
+    formula.innerHTML = `${amount.toLocaleString()} ${currency} &times; ${rate} &times; ${unitLabel}<br>&divide; 100 = <strong style="color:var(--accent)">${comm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})} EGP</strong>`;
+    setVal('sComm', result.value, true);
+    setVal('sCommRate', commVal + commUnit);
+  } else {
+    result.value = '';
+    formula.innerHTML = 'Amount &times; Exch. Rate &times; Comm<br>&divide; 100 = <strong>EGP</strong>';
+    setVal('sComm', '', false);
+    setVal('sCommRate', commVal ? commVal + commUnit : '');
+  }
+  updateSummary();
+}
+
+// ── Summary ──
+function updateSummary() {
+  const branch   = document.getElementById('branchNum').value.trim().toUpperCase();
+  const ticket   = document.getElementById('ticketNum').value.trim().toUpperCase();
+  const customer = document.getElementById('customerId').value.trim().toUpperCase();
+  const currency = document.getElementById('currency').value;
+  const amount   = document.getElementById('docAmount').value;
+  const rate     = document.getElementById('exchRate').value;
+  const ourRef   = document.getElementById('ourRef').value;
+  const form4Ref = document.getElementById('form4Ref').value;
+  const contract = document.getElementById('contractNum').value.trim();
+
+  document.getElementById('summaryContract').innerHTML  = contract ? contract : '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryOurRef').innerHTML    = ourRef   ? ourRef   : '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryForm4Ref').innerHTML  = form4Ref ? form4Ref : '<span class="ref-empty">pending…</span>';
+
+  setVal('sBranch',   branch);
+  setVal('sTicket',   ticket);
+  setVal('sCustomer', customer);
+  setVal('sBankRef',  document.getElementById('bankRef').value.trim());
+  setVal('sMcbe',     document.getElementById('mcbeNum').value.trim());
+  setVal('sCurrency', currency);
+  setVal('sAmount',   amount ? `${parseFloat(amount).toLocaleString()} ${currency||''}` : '');
+  setVal('sRate',     rate   ? `${parseFloat(rate).toLocaleString()} EGP` : '');
+  updateSwiftPreview();
+}
+
+function setVal(id, val, highlight) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val) { el.textContent = val; el.classList.remove('empty'); if (highlight) el.classList.add('highlight'); }
+  else     { el.textContent = '—'; el.classList.add('empty'); el.classList.remove('highlight'); }
+}
+
+// ── Copy single field ──
+function copyField(fieldId, btn) {
+  const val = document.getElementById(fieldId).value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => {
+    btn.classList.add('copied'); btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘ Copy'; }, 2000);
+  });
+}
+
+// ── Copy All + Log ──
+function copyAll() {
+  const g   = id => document.getElementById(id).value.trim() || '—';
+  const cur = document.getElementById('currency').value || '—';
+  const now = new Date();
+  const today = now.toLocaleDateString('en-GB');
+  const time  = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const swiftStatus = document.getElementById('swiftCommStatus').textContent.replace(/[✔✘]/g,'').trim();
+
+  const contract = g('contractNum');
+  const ourRef   = g('ourRef');
+  const form4Ref = document.getElementById('form4Ref').value || '—';
+
+  const text = [
+    `CONTRACT    - ${contract}`,
+    `OUR REF     - ${ourRef}`,
+    `FORM 4 REF  - ${form4Ref}`,
+    ``,
+    `Branch No.  : ${g('branchNum').toUpperCase()}`,
+    `Ticket No.  : ${g('ticketNum').toUpperCase()}`,
+    `Customer ID : ${g('customerId').toUpperCase()}`,
+    `Bank Ref    : ${g('bankRef')}`,
+    `MCBE        : ${g('mcbeNum')}`,
+    `Currency    : ${cur}`,
+    `Doc. Amount : ${g('docAmount')} ${cur}`,
+    `Swift Comm  : ${swiftStatus || '—'}`,
+    `Date        : ${today}`,
+  ].join('\n');
+
+  // Log always
+  operations.unshift({
+    id: Date.now(), time: `${today} ${time}`, date: today,
+    contract, ourRef, form4Ref,
+    branch: g('branchNum').toUpperCase(), ticket: g('ticketNum').toUpperCase(),
+    customer: g('customerId').toUpperCase(), bankRef: g('bankRef'),
+    currency: cur, amount: g('docAmount'), swiftComm: swiftStatus || '—',
+    fullText: text
+  });
+  updateOpsCount();
+
+  try {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Copied & logged to Daily Operations ✓'))
+      .catch(() => showToast('Logged to Daily Operations ✓'));
+  } catch(e) { showToast('Logged to Daily Operations ✓'); }
+}
+
+// ── Render Ops ──
+function renderOps() {
+  const container  = document.getElementById('opsContainer');
+  const dateFilter = document.getElementById('dateFilter').value;
+  const today      = new Date().toLocaleDateString('en-GB');
+
+  let filtered = operations;
+  if (dateFilter) {
+    const fd = new Date(dateFilter).toLocaleDateString('en-GB');
+    filtered = operations.filter(op => op.date === fd);
+  }
+
+  document.getElementById('statTotal').textContent = operations.length;
+  document.getElementById('statToday').textContent = operations.filter(op => op.date === today).length;
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="ops-empty"><div class="ops-empty-icon">📭</div>${dateFilter?'No operations on this date.':'No operations yet.<br>Fill in Data Entry and click <strong>Copy Full Entry</strong> to log.'}</div>`;
+    return;
+  }
+
+  const rows = filtered.map((op, i) => `
+    <tr>
+      <td><span class="ops-row-num">${filtered.length - i}</span></td>
+      <td style="font-size:.68rem;">${op.time}</td>
+      <td class="contract-col">${op.contract}</td>
+      <td class="ref-col">${op.ourRef}</td>
+      <td class="ref-col" style="color:var(--gold)">${op.form4Ref}</td>
+      <td>${op.ticket}</td>
+      <td>${op.customer}</td>
+      <td>${op.amount} ${op.currency}</td>
+      <td style="color:${op.swiftComm==='COMM'?'var(--green)':'#c04020'};font-weight:700;">${op.swiftComm}</td>
+      <td>
+        <button class="ops-copy-row" onclick="copyOpRow(${op.id})">⎘ Copy</button>
+        <button class="ops-del-row"  onclick="deleteOp(${op.id})">✕</button>
+      </td>
+    </tr>`).join('');
+
+  container.innerHTML = `
+    <div style="overflow-x:auto;border-radius:4px;border:1px solid var(--border);">
+      <table class="ops-table">
+        <thead><tr>
+          <th>#</th><th>Time</th><th>Contract</th><th>OUR REF</th><th>FORM 4</th>
+          <th>Ticket</th><th>Customer</th><th>Amount</th><th>Swift</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function copyOpRow(id) {
+  const op = operations.find(o => o.id === id);
+  if (!op) return;
+  navigator.clipboard.writeText(op.fullText).then(() => showToast('Operation copied ✓'));
+}
+
+function deleteOp(id) {
+  operations = operations.filter(o => o.id !== id);
+  updateOpsCount(); renderOps();
+}
+
+function copyAllOps() {
+  if (!operations.length) { showToast('No operations to copy'); return; }
+  const text = operations.map((op, i) => [`[${operations.length - i}] ${op.time}`, op.fullText, ''].join('\n')).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast(`${operations.length} operations copied ✓`));
+}
+
+function clearAllOps() {
+  if (!operations.length) return;
+  if (confirm('Clear all logged operations?')) { operations = []; updateOpsCount(); renderOps(); }
+}
+
+function clearDateFilter() {
+  document.getElementById('dateFilter').value = '';
+  renderOps();
+}
+
+function updateOpsCount() {
+  const today = new Date().toLocaleDateString('en-GB');
+  document.getElementById('opsCount').textContent = operations.length;
+  document.getElementById('statTotal').textContent = operations.length;
+  document.getElementById('statToday').textContent = operations.filter(op => op.date === today).length;
+}
+
+// ── Swift preview ──
+function updateSwiftPreview() {
+  const ourRef   = document.getElementById('ourRef').value.trim()   || '';
+  const yourRef  = document.getElementById('bankRef').value.trim()  || '';
+  const currency = document.getElementById('currency').value         || '';
+  const amount   = document.getElementById('docAmount').value.trim() || '';
+
+  // Sync read-only fields in swift tab
+  document.getElementById('swiftOurRef').value   = ourRef;
+  document.getElementById('swiftYourRef').value  = yourRef;
+  document.getElementById('swiftCurrency').value = currency;
+  document.getElementById('swiftAmount').value   = amount;
+
+  const msg = [
+    `OUR REF   ${ourRef}`,
+    `YOUR REF  ${yourRef}`,
+    ``,
+    `WE ACKNOWLEDGE THAT WE SENT TO YOU FOR AMOUNT - ${amount} ${currency}`,
+    `WITHOUT ANY RESPONSE FOR US`,
+  ].join('\n');
+
+  document.getElementById('swiftPreview').textContent = msg;
+}
+
+function copySwift(btn) {
+  const text = document.getElementById('swiftPreview').textContent;
+  if (!text) return;
+
+  // Try modern clipboard API first, fallback to execCommand
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied'); btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘ Copy Message'; }, 2000);
+    }).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    btn.classList.add('copied'); btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘ Copy Message'; }, 2000);
+  } catch(e) { showToast('Copy failed — please copy manually'); }
+  document.body.removeChild(ta);
+}
+function resetForm() {
+  ['branchNum','ticketNum','customerId','contractNum','mcbeNum','bankRef','ourRef','form4Ref',
+   'docAmount','exchRate','commRate','commResult','swiftDate','swiftYourRef']
+    .forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('currency').value = '';
+  ['sBranch','sTicket','sCustomer','sBankRef','sCurrency','sAmount','sRate','sComm','sCommRate']
+    .forEach(id => setVal(id, ''));
+  setVal('sSwiftComm', '');
+  document.getElementById('summaryContract').innerHTML  = '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryOurRef').innerHTML    = '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryForm4Ref').innerHTML  = '<span class="ref-empty">pending…</span>';
+  document.getElementById('formulaDisplay').innerHTML   = 'Amount &times; Exch. Rate &times; Comm<br>&divide; 100 = <strong>EGP</strong>';
+  const box = document.getElementById('swiftCommStatus');
+  box.className = 'swift-status neutral'; box.textContent = '— Enter date —';
+  document.getElementById('branchNum').focus();
+  showToast('Form cleared — ready for new entry');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── Init ──
+(function() {
+  const now = new Date();
+  document.getElementById('dateBadge').textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+  document.getElementById('sDate').textContent = now.toLocaleDateString('en-GB');
+  document.getElementById('dateFilter').value = now.toISOString().split('T')[0];
+})();
+
+// Signature protection
+(function() {
+  const sigName = "Youssef Hakeem";
+  setTimeout(function() {
+    const el = document.getElementById('sigName');
+    if (!el) return;
+    new MutationObserver(function() {
+      if (el.textContent !== sigName) el.textContent = sigName;
+    }).observe(el, {childList:true,characterData:true,subtree:true});
+  }, 100);
+})();
+</script>
+</body>
+</html>
