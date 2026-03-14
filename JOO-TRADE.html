@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract Data Entry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root {
+    --bg:#f5f0e8;--surface:#fdfaf5;--dark:#1a1a2e;--mid:#4a3a2a;--dim:#8a7a6a;
+    --border:#e0d4c0;--accent:#c8601a;--accent2:#1a3a6e;--green:#2d7a4f;
+    --gold:#b8860b;--main-color:#1a3a6e;--charges-color:#6e2d1a;
+    --shadow:rgba(26,26,46,.12);
+    --shadow:rgba(26,22,18,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--dark);font-family:'Syne',sans-serif;min-height:100vh;font-size:13px;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+  /* ── HOME SCREEN ── */
+  #homeScreen{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:0;background:linear-gradient(160deg,#f5f0e8 60%,#1a1a2e 100%);}
+  .home-tag{font-size:.6rem;font-weight:800;letter-spacing:4px;color:var(--accent);text-transform:uppercase;}
+  .home-title{font-size:2.2rem;font-weight:800;color:var(--dark);letter-spacing:-1px;text-align:center;}
+  .home-sub{font-size:.65rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;text-align:center;}
+  .contract-types{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px;width:100%;}
+  .contract-card{background:white;border:1.5px solid var(--border);border-radius:10px;padding:28px 20px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(26,26,46,.08);}
+  .contract-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent);}
+  .contract-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 32px rgba(200,96,26,.15);}
+  .cc-type{font-size:1.5rem;font-weight:800;color:var(--main-color);letter-spacing:2px;font-family:'JetBrains Mono',monospace;}
+  .cc-desc{font-size:.6rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-top:6px;}
+  .home-sig{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--dim);letter-spacing:2px;}
+  .home-sig span{color:var(--accent);}
+
+  /* ── TOOL SCREEN ── */
+  #toolScreen{display:none;position:relative;z-index:1;padding:0 0 60px;}
+  .container{max-width:980px;margin:0 auto;padding:0 20px;}
+  .container-inner{padding:20px 0;}
+
+  .header{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 24px;background:var(--dark);margin-bottom:0;}
+  .header-left{display:flex;align-items:center;gap:12px;}
+  .back-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:6px 14px;font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:1px;cursor:pointer;color:rgba(255,255,255,.7);transition:all .2s;text-transform:uppercase;}
+  .back-btn:hover{background:rgba(255,255,255,.15);color:white;}
+  .header-tag{display:inline-block;background:var(--accent);color:white;font-size:.58rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:5px;}
+  .contract-type-badge{display:inline-block;background:var(--accent);color:white;font-size:.7rem;font-weight:800;letter-spacing:3px;padding:4px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;}
+  h1{font-size:1.5rem;font-weight:800;color:white;letter-spacing:-.5px;}
+  .header-sub{font-size:.6rem;color:rgba(255,255,255,.4);margin-top:3px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+  .offline-pill{display:flex;align-items:center;gap:5px;background:rgba(45,122,79,.2);border:1px solid rgba(45,122,79,.4);color:#6acc8a;font-size:.62rem;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:20px;}
+  .offline-pill::before{content:'●';font-size:.5rem;}
+  #dateBadge{font-size:.6rem;color:rgba(255,255,255,.3);margin-top:6px;font-family:'JetBrains Mono',monospace;text-align:right;}
+
+  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:0;background:var(--surface);}
+  .tab-btn{padding:12px 20px;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:var(--dim);border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{color:var(--dark);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:transparent;}
+  .tab-count{background:var(--accent);color:white;font-size:.55rem;font-weight:800;padding:1px 5px;border-radius:8px;min-width:18px;text-align:center;}
+  .tab-pane{display:none;padding-top:18px;}
+  .tab-pane.active{display:block;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
+  .section-wrap{display:flex;flex-direction:column;}
+  .section-label{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px 8px 0 0;font-size:.65rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:white;}
+  .main-label{background:var(--main-color);}
+  .charges-label{background:var(--charges-color);}
+  .card{background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 2px 12px rgba(26,26,46,.06);overflow:hidden;}
+  .sub-header{background:#f5f0e8;border-bottom:1px solid var(--border);padding:6px 16px;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+  .card-body{padding:16px;}
+  .inner-div{border:none;border-top:1px dashed var(--border);margin:0 16px;}
+
+  .fields-grid{display:grid;gap:10px;}
+  .fg-1{grid-template-columns:1fr;}
+  .fg-2{grid-template-columns:1fr 1fr;}
+  .span2{grid-column:span 2;}
+  .field-group{display:flex;flex-direction:column;gap:3px;}
+  .field-label{font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);}
+  .field-required{color:var(--accent);}
+  .field-input{background:#fdfaf5;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--dark);transition:all .2s;outline:none;width:100%;}
+  .field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,96,26,.1);}
+  .field-input::placeholder{color:#c8bfb0;font-size:.75rem;}
+  .field-input.auto-field{background:#eef3f8;border-color:var(--main-color);color:var(--main-color);font-weight:700;cursor:default;}
+  .field-input.auto-field:focus{box-shadow:none;}
+  .field-input.amount-field:not(:placeholder-shown){border-color:var(--main-color);background:#eef3f8;}
+  .field-input.maturity-field{background:#f0fff6;border-color:#2d7a4f;color:#1a5c3a;}
+  .field-input.maturity-field:focus{box-shadow:0 0 0 3px rgba(45,122,79,.1);}
+  select.field-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a3a2a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 9px center;padding-left:26px;}
+  .auto-badge{font-size:.54rem;font-weight:700;letter-spacing:1px;color:var(--main-color);text-transform:uppercase;}
+  .auto-badge::before{content:'⚡ ';}
+  .field-hint{font-size:.56rem;color:var(--dim);}
+  .live-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.54rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;}
+  .live-indicator::before{content:'●';animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2d7a4f;animation:strobe 2.8s infinite;}
+  @keyframes strobe{
+    0%   {opacity:0;box-shadow:none;}
+    4%   {opacity:1;box-shadow:0 0 5px 2px rgba(45,180,90,.95),0 0 12px 5px rgba(45,180,90,.5);}
+    9%   {opacity:0;box-shadow:none;}
+    13%  {opacity:1;box-shadow:0 0 5px 2px rgba(45,180,90,.95),0 0 12px 5px rgba(45,180,90,.5);}
+    18%  {opacity:0;box-shadow:none;}
+    22%  {opacity:1;box-shadow:0 0 5px 2px rgba(45,180,90,.95),0 0 12px 5px rgba(45,180,90,.5);}
+    28%  {opacity:0;box-shadow:none;}
+    100% {opacity:0;box-shadow:none;}
+  }
+  .formula-box{background:#eef3f8;border:1px solid var(--border);border-radius:3px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--mid);line-height:1.6;}
+  .copy-btn{display:inline-flex;align-items:center;gap:3px;background:rgba(26,58,110,.06);border:1px solid rgba(26,58,110,.2);border-radius:6px;padding:4px 10px;color:var(--main-color);font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;margin-top:2px;width:fit-content;}
+  .copy-btn:hover{background:rgba(26,58,110,.12);}
+  .copy-btn.copied{background:rgba(45,122,79,.12);border-color:var(--green);color:var(--green);}
+
+  /* Advance Payment toggle */
+  .advance-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(42,100,150,.05);border:1.5px solid rgba(42,100,150,.15);border-radius:4px;cursor:pointer;user-select:none;margin-bottom:4px;}
+  .advance-toggle input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent2);}
+  .advance-toggle-label{font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);}
+  .advance-toggle.on{background:rgba(42,100,150,.1);border-color:var(--accent2);}
+  .advance-toggle.on .advance-toggle-label{color:var(--accent2);}
+
+  /* Maturity label */
+  .maturity-label{font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);}
+  .maturity-label::before{content:'📅 ';}
+
+  .swift-status{padding:11px 14px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:.92rem;font-weight:800;letter-spacing:2px;text-align:center;transition:all .3s;}
+  .swift-status.neutral{background:#f0f4f8;border:1.5px solid var(--border);color:var(--dim);}
+  .swift-status.comm{background:#e8f5ee;border:1.5px solid var(--green);color:var(--green);}
+  .swift-status.no-comm{background:#fff3ee;border:1.5px solid #e07050;color:#c04020;}
+
+  .output-card{background:var(--dark);border-radius:4px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.2);}
+  .output-header{padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;}
+  .output-header h2{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+  .output-body{padding:14px;}
+  .ref-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .ref-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;padding:10px 12px;position:relative;overflow:hidden;}
+  .ref-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .ref-item.ref-contract::before{background:#7c4dff;}
+  .ref-item.ref-our::before{background:var(--accent);}
+  .ref-item.ref-form::before{background:var(--gold);}
+  .ref-label{font-size:.55rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:4px;}
+  .ref-value{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;letter-spacing:1px;word-break:break-all;}
+  .ref-contract .ref-value{color:#b39dff;}
+  .ref-our .ref-value{color:#ff8c5a;}
+  .ref-form .ref-value{color:#ffd700;}
+  .ref-empty{color:rgba(255,255,255,.2);font-style:italic;font-size:.75rem;}
+  .summary-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .summary-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:10px 12px;}
+  .summary-block-title{font-size:.53rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:8px;}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:8px;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-key{font-size:.6rem;color:rgba(255,255,255,.35);text-transform:uppercase;flex-shrink:0;}
+  .summary-val{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:rgba(255,255,255,.82);font-weight:500;text-align:right;}
+  .summary-val.empty{color:rgba(255,255,255,.2);font-style:italic;}
+  .summary-val.highlight{color:#6dffaa;font-weight:700;}
+  .summary-val.comm-yes{color:#6dffaa;font-weight:700;}
+  .summary-val.comm-no{color:#ff8c70;font-weight:700;}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .btn{display:flex;align-items:center;gap:5px;border:none;border-radius:3px;padding:9px 16px;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+  .btn-primary{background:var(--accent);color:white;}
+  .btn-primary:hover{background:#a04818;transform:translateY(-1px);}
+  .btn-secondary{background:var(--accent2);color:white;}
+  .btn-secondary:hover{background:#1e4e6e;transform:translateY(-1px);}
+  .btn-danger{background:#8b2020;color:white;}
+  .btn-danger:hover{background:#6b1818;transform:translateY(-1px);}
+
+  .ops-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+  .ops-toolbar-left{display:flex;align-items:center;gap:8px;}
+  .ops-date-filter{background:white;border:1.5px solid var(--border);border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--dark);outline:none;}
+  .ops-date-filter:focus{border-color:var(--accent2);}
+  .ops-empty{text-align:center;padding:50px 20px;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.8rem;border:2px dashed var(--border);border-radius:4px;}
+  .ops-empty-icon{font-size:2rem;margin-bottom:10px;}
+  .ops-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.72rem;}
+  .ops-table th{background:var(--dark);color:rgba(255,255,255,.6);padding:8px 12px;text-align:left;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+  .ops-table th:first-child{border-radius:3px 0 0 0;}
+  .ops-table th:last-child{border-radius:0 3px 0 0;}
+  .ops-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--dark);vertical-align:top;}
+  .ops-table tr:last-child td{border-bottom:none;}
+  .ops-table tr:hover td{background:rgba(42,100,150,.05);}
+  .ops-table td.ref-col{color:var(--accent);font-weight:700;font-size:.68rem;word-break:break-all;max-width:160px;}
+  .ops-table td.contract-col{color:#7c4dff;font-weight:700;}
+  .ops-row-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--dim);color:white;border-radius:50%;font-size:.6rem;font-weight:800;flex-shrink:0;}
+  .ops-copy-row{padding:2px 6px;background:rgba(42,100,150,.08);border:1px solid rgba(42,100,150,.2);border-radius:2px;color:var(--accent2);font-size:.55rem;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+  .ops-copy-row:hover{background:rgba(42,100,150,.18);}
+  .ops-del-row{padding:2px 6px;background:rgba(139,32,32,.08);border:1px solid rgba(139,32,32,.2);border-radius:2px;color:#8b2020;font-size:.55rem;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;margin-left:4px;}
+  .ops-del-row:hover{background:rgba(139,32,32,.18);}
+  .ops-stats{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .ops-stat{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:8px 14px;}
+  .ops-stat-label{font-size:.55rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+  .ops-stat-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--dark);margin-top:2px;}
+
+  .signature-bar{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:24px;}
+  .sig-line{flex:1;height:1px;background:var(--border);}
+  .sig-box{text-align:center;padding:6px 16px;border:1px solid var(--border);border-radius:2px;user-select:none;-webkit-user-select:none;}
+  .sig-by{font-size:.52rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+  .sig-name{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;color:var(--accent);letter-spacing:2px;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--dark);color:white;padding:9px 20px;border-radius:4px;font-size:.75rem;font-weight:600;letter-spacing:1px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;border-left:3px solid var(--green);white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:640px){
+    .two-col,.fg-2,.summary-cols,.ref-grid,.contract-types{grid-template-columns:1fr;}
+    .span2{grid-column:span 1;}
+    .batch-cell { width:100%;border:none;outline:none;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;background:transparent;color:var(--dark); }
+  .batch-cell:focus { background:#fffbe6; }
+  .home-title{font-size:1.5rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HOME SCREEN ══ -->
+<div id="homeScreen">
+
+  <!-- Top bar -->
+  <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#c8601a,#1a3a6e,#1a5c3a);"></div>
+
+  <!-- Logo + Brand -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:40px;">
+
+    <!-- Wolf SVG -->
+    <div style="width:110px;height:90px;position:relative;margin-bottom:8px;">
+      <!-- Circle background — centered but ship bow sticks out left -->
+      <div style="width:90px;height:90px;background:#1a1a2e;border-radius:50%;box-shadow:0 8px 32px rgba(26,26,46,.25);position:absolute;right:0;bottom:0;"></div>
+      <!-- Ship SVG facing left, bow outside circle -->
+      <svg width="130" height="100" viewBox="0 0 130 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;">
+
+        <!-- Water -->
+        <path d="M5 78 Q20 74 35 78 Q50 82 65 78 Q80 74 95 78 Q110 82 125 78 L125 90 L5 90Z" fill="#1a3a6e" opacity=".6"/>
+        <path d="M0 82 Q15 78 30 82 Q45 86 60 82 Q75 78 90 82 Q105 86 120 82 L120 90 L0 90Z" fill="#1a4a8e" opacity=".5"/>
+
+        <!-- Hull main body -->
+        <path d="M8 72 Q15 65 30 63 L100 63 Q112 63 118 68 L115 78 Q80 82 45 82 Q25 82 12 78 Z" fill="#c8601a"/>
+        <!-- Hull bottom darker -->
+        <path d="M12 78 Q45 83 115 78 L112 84 Q75 88 40 84 Q22 83 10 80 Z" fill="#8a3a10"/>
+        <!-- Hull waterline white stripe -->
+        <path d="M14 76 Q50 79 114 76 L113 78 Q50 81 13 78Z" fill="white" opacity=".3"/>
+
+        <!-- Bow — sticks out left outside circle -->
+        <path d="M8 72 Q2 70 0 66 Q0 62 5 60 Q8 62 10 65 L12 78 Q10 76 8 72Z" fill="#a84e14"/>
+        <!-- Bow tip sharp -->
+        <path d="M0 64 Q-2 63 0 62 Q3 61 6 63 Q4 65 0 64Z" fill="#c8601a"/>
+
+        <!-- Deck details -->
+        <rect x="30" y="58" width="75" height="5" rx="1" fill="#b85510"/>
+        <!-- Cabin -->
+        <rect x="65" y="46" width="30" height="17" rx="2" fill="#e8d4b0"/>
+        <rect x="70" y="50" width="8" height="7" rx="1" fill="#1a3a6e" opacity=".7"/>
+        <rect x="82" y="50" width="8" height="7" rx="1" fill="#1a3a6e" opacity=".7"/>
+
+        <!-- Egyptian Flag — large, replacing sails -->
+        <!-- Flag pole -->
+        <rect x="52" y="10" width="3" height="52" fill="#d4c4a0" rx="1"/>
+        <!-- Flag red stripe -->
+        <rect x="55" y="10" width="38" height="11" fill="#CE1126" rx="1"/>
+        <!-- Flag white stripe -->
+        <rect x="55" y="21" width="38" height="11" fill="white"/>
+        <!-- Flag black stripe -->
+        <rect x="55" y="32" width="38" height="11" fill="#000000" rx="1"/>
+        <!-- Eagle of Saladin — simplified gold -->
+        <path d="M72 22 Q74 19 76 22 Q78 20 80 22 Q79 25 76 26 Q73 25 72 22Z" fill="#C09300"/>
+        <path d="M70 24 Q72 21 76 22 Q80 21 82 24 Q80 27 76 28 Q72 27 70 24Z" fill="#C09300" opacity=".8"/>
+        <rect x="74" y="26" width="4" height="4" fill="#C09300" opacity=".9" rx=".5"/>
+        <!-- Rope from bow to mast top -->
+        <path d="M8 65 Q25 50 52 20" stroke="#c8b890" stroke-width="1" fill="none" opacity=".5"/>
+        <!-- Rope from mast to stern -->
+        <path d="M55 15 Q85 25 100 45" stroke="#c8b890" stroke-width=".8" fill="none" opacity=".4"/>
+
+        <!-- Porthole -->
+        <circle cx="40" cy="70" r="4" fill="#1a3a6e" stroke="#c8a870" stroke-width="1"/>
+        <circle cx="55" cy="70" r="4" fill="#1a3a6e" stroke="#c8a870" stroke-width="1"/>
+        <circle cx="70" cy="70" r="4" fill="#1a3a6e" stroke="#c8a870" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <!-- Brand name -->
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:-1px;color:#1a1a2e;line-height:1;">
+        JOO <span style="color:#c8601a;">TRADE</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:4px;color:#888;margin-top:6px;text-transform:uppercase;">Trade Finance · Internal Tool</div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div style="width:60px;height:2px;background:linear-gradient(90deg,transparent,#c8601a,transparent);margin-bottom:36px;"></div>
+
+  <!-- Contract Cards -->
+  <div class="contract-types" style="margin-bottom:40px;">
+    <div class="contract-card" onclick="openContract('CLSI')">
+      <div class="cc-type">CLSI</div>
+      <div class="cc-desc">Documentary Credit</div>
+    </div>
+    <div class="contract-card" onclick="openContract('CLUD')">
+      <div class="cc-type">CLUD</div>
+      <div class="cc-desc">Usance Documentary</div>
+    </div>
+    <div class="contract-card" onclick="openContract('CLUW')">
+      <div class="cc-type">CLUW</div>
+      <div class="cc-desc">Usance Documentary</div>
+    </div>
+    <div class="contract-card" onclick="openContract('CLUG')">
+      <div class="cc-type">CLUG</div>
+      <div class="cc-desc">Documentary Credit</div>
+    </div>
+  </div>
+
+  <!-- Signature -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div style="width:40px;height:1px;background:#ddd;"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:3px;color:#bbb;text-transform:uppercase;">Designed by</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#1a1a2e;letter-spacing:1px;">YOUSSEF</div>
+  </div>
+
+  <!-- Bottom dark bar -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1a1a2e,#c8601a,#1a1a2e);"></div>
+</div>
+
+<!-- ══ TOOL SCREEN ══ -->
+<div id="toolScreen">
+
+  <!-- Header — full width -->
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="goHome()">← Back</button>
+      <div>
+        <div class="header-tag">Internal Tool</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h1>Contract Data Entry</h1>
+          <span class="contract-type-badge" id="contractTypeBadge">CLSI</span>
+        </div>
+        <div class="header-sub">AUTO-REF GENERATOR • COMMISSION CALCULATOR • DAILY LOG</div>
+      </div>
+    </div>
+    <div>
+      <div class="offline-pill">OFFLINE READY</div>
+      <div id="dateBadge" style="margin-top:5px;"></div>
+    </div>
+  </div>
+
+<div class="container">
+
+  <!-- Tabs -->
+  <div id="mainContent">
+  <div class="tabs" style="position:relative;">
+    <button class="tab-btn active" onclick="switchTab('entry',this)">📋 &nbsp;Data Entry</button>
+    <button class="tab-btn" onclick="switchTab('ops',this)">📅 &nbsp;Daily Operations <span class="tab-count" id="opsCount">0</span></button>
+    <button class="tab-btn" onclick="switchTab('fx',this)">💱 &nbsp;Daily FX</button>
+    <span class="status-dot" style="position:absolute;right:10px;bottom:7px;"></span>
+  </div>
+
+  <!-- ══ TAB 1: DATA ENTRY ══ -->
+  <div class="tab-pane active" id="tab-entry">
+
+    <!-- CLSI Sub-tabs (103 / 202 / نظامية / MT 400 / BATCH) — only shown for CLSI -->
+    <div id="clsiSubTabs" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;">
+        <button id="subTabADV" onclick="setClsiSubTab('ADV')" style="padding:8px 24px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;">ADVANCE PAYMENT</button>
+        <button id="subTab103" onclick="setClsiSubTab('103')" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">103</button>
+        <button id="subTab202" onclick="setClsiSubTab('202')" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">202</button>
+        <button id="subTabNEZ" onclick="setClsiSubTab('NEZ')" style="padding:8px 24px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">نظامية</button>
+        <button id="subTabEKHTAR" onclick="openEkhtarScreen()" style="display:none;padding:8px 24px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">إخطار وصول</button>
+        <button id="subTabMT410" onclick="openMt410Screen()" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 410</button>
+        <button id="subTabBATCH" onclick="setClsiSubTab('BATCH'); openBatchScreen();" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">BATCH</button>
+        <button id="subTabMT400" onclick="setClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">
+          <span id="mt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;margin-right:5px;transition:background .3s;"></span>MT 400
+        </button>
+      </div>
+    </div>
+
+    <!-- Non-CLSI Sub-tabs (نظامية / إخطار وصول) — shown for CLUD/CLUW/CLUG -->
+    <div id="nonClsiSubTabs" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;">
+        <button id="ncSubTab103"   onclick="setNonClsiSubTab('103')"   style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;">103</button>
+        <button id="ncSubTab202"   onclick="setNonClsiSubTab('202')"   style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">202</button>
+        <button id="ncSubTabNEZ"   onclick="setNonClsiSubTab('NEZ')"   style="padding:8px 24px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">نظامية</button>
+        <button id="ncSubTabBATCH" onclick="setNonClsiSubTab('BATCH'); openBatchScreen();" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">BATCH</button>
+        <button id="ncSubTabMT400" onclick="setNonClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;"><span id="ncMt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;margin-right:5px;transition:background .3s;"></span>MT 400</button>
+        <button id="ncSubTabMT412" onclick="setNonClsiSubTab('MT412'); openMtScreen('mt412Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 412</button>
+        <button id="ncSubTabEKHTAR" onclick="openEkhtarScreen()" style="display:none;padding:8px 24px;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">إخطار وصول</button>
+        <button id="ncSubTabMT410" onclick="openMt410Screen()" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 410</button>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <!-- MAIN -->
+      <div class="section-wrap">
+        <div class="section-label main-label">📋 &nbsp;Main</div>
+        <div class="card">
+
+          <div class="sub-header">Identifiers</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Branch Number</label>
+                <input type="text" class="field-input" id="branchNum" placeholder="e.g. 140" maxlength="10" oninput="autoGenerate(); showBranchName()"/>
+                <div id="branchNameBadge" style="display:none;margin-top:6px;padding:6px 12px;background:#e8f5ee;border:1.5px solid #2d7a4f;border-radius:4px;color:#1a5c3a;font-size:.72rem;font-weight:800;letter-spacing:.5px;font-family:'Syne',sans-serif;direction:rtl;">
+                  <span style="opacity:.6;margin-left:4px;">🏦</span><span id="branchNameText"></span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Ticket Number</label>
+                <input type="text" class="field-input" id="ticketNum" placeholder="e.g. 1238323" maxlength="20" oninput="this.value=this.value.replace(/\s/g,''); autoGenerate()"/>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Customer ID</label>
+                <input type="text" class="field-input" id="customerId" placeholder="e.g. 1293847" maxlength="20" oninput="autoGenerate()"/>
+              </div>
+
+              <div class="fields-grid fg-2" style="gap:10px;">
+                <div class="field-group">
+                  <label class="field-label"><span class="field-required">* </span>Currency</label>
+                  <select class="field-input" id="currency" onchange="calcCommission(); updateSummary(); calcOurTransfer(); updateMt410TabColor(); updateMt412TabColor()">
+                    <option value="">— Select —</option>
+                    <option value="USD">USD — Dollar</option>
+                    <option value="EUR">EUR — Euro</option>
+                    <option value="GBP">GBP — Pound</option>
+                    <option value="EGP">EGP — Egyptian £</option>
+                    <option value="AED">AED — Dirham</option>
+                    <option value="SAR">SAR — Riyal</option>
+                    <option value="JPY">JPY — Yen</option>
+                    <option value="CNY">CNY — Yuan</option>
+                    <option value="CHF">CHF — Swiss Fr.</option>
+                    <option value="CAD">CAD — CA Dollar</option>
+                    <option value="AUD">AUD — AU Dollar</option>
+                    <option value="INR">INR — Rupee</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label"><span class="field-required">* </span>Document Amount</label>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="number" class="field-input amount-field" id="docAmount" placeholder="e.g. 1000" min="0" step="0.01" oninput="calcCommission(); updateSummary(); if(specialRateOn) calcSpecialRate(); autoGenerate(); calcTransfer(); calcOurTransfer(); updateMt410TabColor(); updateMt412TabColor();"/>
+                    <button id="ourToggleBtn" onclick="toggleOurTransfer()" title="OUR — Correspondent bank charges"
+                      style="flex-shrink:0;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:800;letter-spacing:1px;border:1.5px solid var(--border);border-radius:3px;cursor:pointer;background:white;color:var(--dim);transition:all .2s;white-space:nowrap;">OUR</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- OUR TRANSFER row — USD + 103 only -->
+              <div id="ourTransferRow" style="display:none;margin-top:8px;">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff8e8;border:1.5px solid #c8a020;border-radius:4px;">
+                  <span style="font-size:.58rem;font-weight:800;letter-spacing:1.5px;color:#8a5c00;white-space:nowrap;">OUR TRANSFER</span>
+                  <div id="ourTransferDisplay" style="font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:800;color:#8a5c00;">—</div>
+                  <span style="font-size:.58rem;color:#b08000;font-family:'JetBrains Mono',monospace;">USD</span>
+                </div>
+              </div>
+
+              <!-- ADVANCE + TRANSFER — shown when Advance Payment ON -->
+              <div id="advTransferRow" style="display:none;margin-top:10px;">
+                <div class="fields-grid fg-2" style="gap:10px;">
+                  <div class="field-group">
+                    <label class="field-label">ADVANCE</label>
+                    <input type="number" class="field-input" id="advanceAmount" placeholder="e.g. 50" min="0" step="0.01" oninput="calcTransfer()"/>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">TRANSFER</label>
+                    <div id="transferDisplay" style="padding:9px 12px;background:#e8f5ee;border:1.5px solid #2d7a4f;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a5c3a;min-height:38px;">—</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MATURITY DATE — hidden for CLSI, shown for others -->
+              <div class="field-group" id="maturityGroup" style="display:none;">
+                <label class="maturity-label">Maturity Date</label>
+                <input type="text" class="field-input maturity-field" id="maturityDate" placeholder="DD/MM/YYYY" oninput="updateSummary()"/>
+                <span class="field-hint" style="color:var(--green);">Date when payment is due</span>
+              </div>
+
+              <!-- TBO N. + SIEBEL N. — shown only for 103 -->
+              <div id="tboSiebelRow" style="display:none;margin-top:6px;">
+                <div class="fields-grid fg-2" style="gap:10px;">
+                  <div class="field-group">
+                    <label class="field-label">TBO N.</label>
+                    <input type="text" class="field-input" id="tboNum" placeholder="e.g. 123456" style="font-family:'JetBrains Mono',monospace;font-weight:800;"/>
+                  </div>
+                  <div class="field-group" id="siebelNumGroup" style="display:none;">
+                    <label class="field-label">SIEBEL N.</label>
+                    <input type="text" class="field-input" id="siebelNum" placeholder="e.g. 654321" style="font-family:'JetBrains Mono',monospace;font-weight:800;"/>
+                  </div>
+                </div>
+              </div>
+              <!-- end tboSiebelRow -->
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">Advance Payment</div>
+          <div class="card-body" id="advanceSection" style="padding-bottom:8px;">
+            <label class="advance-toggle" id="advanceToggle" onclick="toggleAdvance()">
+              <input type="checkbox" id="advanceCheck" onclick="event.stopPropagation(); toggleAdvance()"/>
+              <span class="advance-toggle-label">Advance Payment</span>
+              <span style="margin-left:auto;font-size:.58rem;color:var(--dim);font-family:'JetBrains Mono',monospace;" id="advanceStatus">OFF</span>
+            </label>
+          </div>
+
+          <!-- MCBE — shown only when Advance Payment is ON -->
+          <div id="mcbeSection" style="display:none;">
+            <hr class="inner-div">
+            <div class="sub-header">MCBE</div>
+            <div class="card-body">
+              <div class="field-group">
+                <label class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
+                  MCBE
+                  <button onclick="addMcbe()" style="background:var(--accent2);color:white;border:none;border-radius:3px;width:20px;height:20px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+                </label>
+                <div id="mcbeContainer">
+                  <div class="mcbe-row" style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
+                    <input type="text" class="field-input" id="mcbeNum" placeholder="MCBE N." oninput="updateSummary()" style="flex:2;"/>
+                    <input type="number" class="field-input" id="mcbeAmt0" placeholder="Amount" oninput="calcMcbeTotal()" style="flex:1.2;text-align:right;"/>
+                    <button class="copy-btn" onclick="copyField('mcbeNum', this)" style="margin-top:0;">⎘</button>
+                  </div>
+                </div>
+                <!-- MCBE Total -->
+                <div id="mcbeTotalRow" style="display:none;margin-top:6px;padding:6px 10px;background:#eef3f8;border:1px solid #c5cde0;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:var(--main-color);">TOTAL</span>
+                  <span id="mcbeTotal" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:var(--main-color);">0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">References</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+
+              <div class="field-group">
+                <label class="field-label"><span class="field-required">* </span>Contract Number</label>
+                <input type="text" class="field-input" id="contractNum" placeholder="e.g. CNT-2024-00123" oninput="updateSummary()"/>
+                <button class="copy-btn" onclick="copyField('contractNum', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">OUR REF</label>
+                <div class="auto-badge">TFCOL6 + Branch + Ticket</div>
+                <input type="text" class="field-input auto-field" id="ourRef" readonly placeholder="Fill Branch & Ticket…"/>
+                <button class="copy-btn" onclick="copyField('ourRef', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group" id="bankRefGroup">
+                <label class="field-label">Bank Reference</label>
+                <input type="text" class="field-input" id="bankRef" placeholder="e.g. BNK-00123" oninput="updateSummary(); updateSwiftPreview()"/>
+                <button class="copy-btn" onclick="copyField('bankRef', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">FORM 4 REF</label>
+                <div class="auto-badge">TFCOL6 + Branch + Ticket - Customer</div>
+                <input type="text" class="field-input auto-field" id="form4Ref" readonly placeholder="Fill all fields…"/>
+                <button class="copy-btn" onclick="copyField('form4Ref', this)">⎘ Copy</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CHARGES -->
+      <div class="section-wrap">
+        <div class="section-label charges-label">💰 &nbsp;Charges</div>
+        <div class="card">
+
+          <div class="sub-header">Exchange Rate</div>
+          <div class="card-body">
+            <div class="fields-grid fg-1">
+              <div class="field-group">
+                <label class="field-label">Exchange Rate (to EGP)</label>
+                <input type="number" class="field-input" id="exchRate" placeholder="e.g. 50.75" min="0" step="0.01" oninput="calcCommission(); if(specialRateOn) calcSpecialRate(); autoGenerate();"/>
+                <span class="field-hint">Enter today's rate manually — no auto-save</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <div class="sub-header">Commission</div>
+          <div class="card-body">
+            <div class="fields-grid fg-2">
+
+              <div class="field-group">
+                <label class="field-label">Commission Rate</label>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="number" class="field-input" id="commRate" placeholder="e.g. 1" min="0" step="0.001" oninput="calcCommission()" style="flex:1;"/>
+                  <div style="display:flex;border:1.5px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;">
+                    <button id="btnPercent" onclick="setUnit('%')" style="padding:8px 10px;background:var(--accent2);color:white;border:none;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;cursor:pointer;">%</button>
+                    <button id="btnPermille" onclick="setUnit('‰')" style="padding:8px 10px;background:white;color:var(--dim);border:none;border-left:1.5px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;cursor:pointer;">‰</button>
+                  </div>
+                </div>
+                <span class="field-hint" id="commHint">% = per hundred | ‰ = per thousand</span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Commission (EGP)</label>
+                <div class="live-indicator">Live</div>
+                <input type="text" class="field-input auto-field" id="commResult" readonly placeholder="Fill all fields…"/>
+                <button class="copy-btn" onclick="copyField('commResult', this)">⎘ Copy</button>
+              </div>
+
+              <div class="field-group span2">
+                <div class="formula-box" id="formulaDisplay">Amount × Exch. Rate × Comm<br>÷ 100 = <strong>EGP</strong></div>
+              </div>
+
+            </div>
+          </div>
+
+          <hr class="inner-div">
+
+          <!-- SPECIAL RATE toggle -->
+          <div class="card-body" style="padding-bottom:8px;">
+            <label class="advance-toggle" id="specialRateToggle" onclick="toggleSpecialRate()">
+              <input type="checkbox" id="specialRateCheck" onclick="event.stopPropagation(); toggleSpecialRate()"/>
+              <span class="advance-toggle-label">⭐ Special Rate</span>
+              <span style="margin-left:auto;font-size:.58rem;color:var(--dim);font-family:'JetBrains Mono',monospace;" id="specialRateStatus">OFF</span>
+            </label>
+          </div>
+
+          <div id="specialRateSection" style="display:none;">
+            <hr class="inner-div">
+            <div class="sub-header">Special Rate Commissions</div>
+            <div class="card-body">
+              <div class="fields-grid fg-1" style="gap:8px;">
+
+                <!-- Special Rate % -->
+                <div class="field-group">
+                  <label class="field-label">Special Rate %</label>
+                  <input type="number" class="field-input" id="specialRatePct" placeholder="e.g. 40" min="0" max="100" step="0.1" oninput="calcSpecialRate()"/>
+                  <span class="field-hint">Applied to all commissions below</span>
+                </div>
+
+                <!-- HAND COMM -->
+                <div style="background:rgba(42,100,150,.04);border:1px solid rgba(42,100,150,.15);border-radius:4px;padding:10px 12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">HAND COMM</span>
+                    <span style="font-size:.6rem;color:var(--dim);font-family:'JetBrains Mono',monospace;">10 USD × Rate × %</span>
+                  </div>
+                  <input type="text" class="field-input auto-field" id="handCommResult" readonly placeholder="Fill exchange rate…"/>
+                  <button class="copy-btn" onclick="copyField('handCommResult',this)" style="margin-top:4px;">⎘ Copy</button>
+                </div>
+
+                <!-- FORM 4 COMM -->
+                <div style="background:rgba(42,100,150,.04);border:1px solid rgba(42,100,150,.15);border-radius:4px;padding:10px 12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">FORM 4 COMM</span>
+                    <span style="font-size:.6rem;color:var(--dim);font-family:'JetBrains Mono',monospace;">150 EGP × %</span>
+                  </div>
+                  <input type="text" class="field-input auto-field" id="form4CommResult" readonly placeholder="Fill special rate %"/>
+                  <button class="copy-btn" onclick="copyField('form4CommResult',this)" style="margin-top:4px;">⎘ Copy</button>
+                </div>
+
+                <!-- POST COMM -->
+                <div style="background:rgba(42,100,150,.04);border:1px solid rgba(42,100,150,.15);border-radius:4px;padding:10px 12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">POST COMM</span>
+                    <span style="font-size:.6rem;color:var(--dim);font-family:'JetBrains Mono',monospace;">200 EGP × %</span>
+                  </div>
+                  <input type="text" class="field-input auto-field" id="postCommResult" readonly placeholder="Fill exchange rate…"/>
+                  <button class="copy-btn" onclick="copyField('postCommResult',this)" style="margin-top:4px;">⎘ Copy</button>
+                </div>
+
+                <!-- SWIFT COMM -->
+                <div style="background:rgba(42,100,150,.04);border:1px solid rgba(42,100,150,.15);border-radius:4px;padding:10px 12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">SWIFT COMM</span>
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span style="font-size:.58rem;color:var(--dim);">×</span>
+                      <select id="swiftCommCount" onchange="calcSpecialRate()" style="background:white;border:1.5px solid var(--border);border-radius:3px;padding:3px 6px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;color:var(--dark);outline:none;cursor:pointer;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                      <span style="font-size:.58rem;color:var(--dim);font-family:'JetBrains Mono',monospace;">35 USD × Rate × %</span>
+                    </div>
+                  </div>
+                  <input type="text" class="field-input auto-field" id="swiftCommResult" readonly placeholder="Fill exchange rate…"/>
+                  <button class="copy-btn" onclick="copyField('swiftCommResult',this)" style="margin-top:4px;">⎘ Copy</button>
+                </div>
+
+                <!-- TRANS COMM -->
+                <div style="background:rgba(42,100,150,.04);border:1px solid rgba(42,100,150,.15);border-radius:4px;padding:10px 12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">TRANS COMM</span>
+                    <span style="font-size:.6rem;color:var(--dim);font-family:'JetBrains Mono',monospace;">Amount × Rate × 3‰</span>
+                  </div>
+                  <input type="text" class="field-input auto-field" id="transCommResult" readonly placeholder="Fill amount & exchange rate…"/>
+                  <button class="copy-btn" onclick="copyField('transCommResult',this)" style="margin-top:4px;">⎘ Copy</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div id="swiftCommSection" style="display:none;">
+          <hr class="inner-div">
+
+          <div class="sub-header">Swift Commission</div>
+          <div class="card-body">
+            <div class="fields-grid fg-2">
+
+              <div class="field-group">
+                <label class="field-label">Document Date</label>
+                <input type="text" class="field-input" id="swiftDate" placeholder="23/11/2025" oninput="checkSwiftComm()"/>
+                <span class="field-hint">DD/MM/YYYY or YYYY/MM/DD or MM/DD/YYYY</span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Swift Comm Status</label>
+                <div class="auto-badge">Auto from date</div>
+                <div class="swift-status neutral" id="swiftCommStatus">— Enter date —</div>
+              </div>
+
+            </div>
+          </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary -->
+    <div class="output-card">
+      <div class="output-header" style="cursor:pointer;" onclick="toggleSummary()">
+        <h2>📋 Full Summary <span id="summaryToggleIcon" style="font-size:.7rem;color:rgba(255,255,255,.4);margin-left:6px;">▼ show</span></h2>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); copyAll()" style="padding:6px 16px;font-size:.65rem;">⎘ Copy & Log</button>
+      </div>
+      <div id="summaryBody" style="display:none;">
+      <div class="output-body">
+
+        <div class="ref-grid">
+          <div class="ref-item ref-contract">
+            <div class="ref-label">Contract No.</div>
+            <div class="ref-value" id="summaryContract"><span class="ref-empty">pending…</span></div>
+          </div>
+          <div class="ref-item ref-our">
+            <div class="ref-label">OUR REF</div>
+            <div class="ref-value" id="summaryOurRef"><span class="ref-empty">pending…</span></div>
+          </div>
+          <div class="ref-item ref-form">
+            <div class="ref-label">FORM 4 REF</div>
+            <div class="ref-value" id="summaryForm4Ref"><span class="ref-empty">pending…</span></div>
+          </div>
+        </div>
+
+        <div class="summary-cols">
+          <div class="summary-block">
+            <div class="summary-block-title">📋 Main</div>
+            <div class="summary-row"><span class="summary-key">Type</span><span class="summary-val" id="sType">—</span></div>
+            <div class="summary-row"><span class="summary-key">Branch</span><span class="summary-val empty" id="sBranch">—</span></div>
+            <div class="summary-row"><span class="summary-key">Ticket</span><span class="summary-val empty" id="sTicket">—</span></div>
+            <div class="summary-row"><span class="summary-key">Customer ID</span><span class="summary-val empty" id="sCustomer">—</span></div>
+            <div class="summary-row"><span class="summary-key">Bank Ref</span><span class="summary-val empty" id="sBankRef">—</span></div>
+            <div class="summary-row" id="sMcbeRow" style="display:none;"><span class="summary-key">MCBE</span><span class="summary-val empty" id="sMcbe">—</span></div>
+            <div class="summary-row"><span class="summary-key">Currency</span><span class="summary-val empty" id="sCurrency">—</span></div>
+            <div class="summary-row"><span class="summary-key">Amount</span><span class="summary-val empty" id="sAmount">—</span></div>
+            <div class="summary-row" id="sMaturityRow" style="display:none;"><span class="summary-key">Maturity</span><span class="summary-val" id="sMaturity" style="color:#6dffaa;">—</span></div>
+            <div class="summary-row"><span class="summary-key">Date</span><span class="summary-val" id="sDate">—</span></div>
+          </div>
+          <div class="summary-block">
+            <div class="summary-block-title">💰 Charges</div>
+            <div class="summary-row"><span class="summary-key">Exch. Rate</span><span class="summary-val empty" id="sRate">—</span></div>
+            <div class="summary-row"><span class="summary-key">Comm. Rate</span><span class="summary-val empty" id="sCommRate">—</span></div>
+            <div class="summary-row"><span class="summary-key">Commission</span><span class="summary-val empty highlight" id="sComm">—</span></div>
+            <div class="summary-row"><span class="summary-key">Swift Comm</span><span class="summary-val empty" id="sSwiftComm">—</span></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="resetForm()">↺ New Entry</button>
+          <button id="ekhtarBtn" class="btn" onclick="toggleNonClsiEkhtar()" style="display:none;background:#4a2a6e;color:white;">📨 إخطار وصول</button>
+        </div>
+
+      </div>
+      </div>
+    </div>
+
+  </div><!-- end tab-entry -->
+
+  <!-- ══ MT 400 PANEL (shown inside tab-entry when 202 selected) ══ -->
+  <div id="mt400Panel" style="display:none;margin-top:18px;">
+    <div class="section-wrap">
+      <div class="section-label" style="background:#1a5c3a;display:flex;align-items:center;gap:8px;">
+        ✉️ &nbsp;MT 400 — SWIFT Message
+      </div>
+      <div id="mt400Card" class="card" style="transition:background .4s,border-color .4s;">
+        <div class="card-body">
+          <div style="background:#f8fff8;border:1.5px solid #a8d5b5;border-radius:3px;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--dark);line-height:2;letter-spacing:0.3px;white-space:pre-wrap;min-height:100px;" id="swiftPreview">Fill in OUR REF, Bank Reference, Amount and Currency to generate…</div>
+          <button class="copy-btn" onclick="copySwift(this)" style="margin-top:10px;">⎘ Copy Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2: DAILY OPERATIONS ══ -->
+  <div class="tab-pane" id="tab-ops">
+    <div class="ops-stats">
+      <div class="ops-stat"><div class="ops-stat-label">Total Operations</div><div class="ops-stat-val" id="statTotal">0</div></div>
+      <div class="ops-stat"><div class="ops-stat-label">Today</div><div class="ops-stat-val" id="statToday">0</div></div>
+    </div>
+    <div class="ops-toolbar">
+      <div class="ops-toolbar-left">
+        <input type="date" class="ops-date-filter" id="dateFilter" oninput="renderOps()" title="Filter by date"/>
+        <button class="copy-btn" onclick="clearDateFilter()" style="margin-top:0;">✕ Clear Filter</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="copy-btn" onclick="copyAllOps()" style="margin-top:0;">⎘ Copy All Ops</button>
+        <button class="btn btn-danger" onclick="clearAllOps()" style="padding:5px 12px;font-size:.62rem;">🗑 Clear All</button>
+      </div>
+    </div>
+    <div id="opsContainer">
+      <div class="ops-empty"><div class="ops-empty-icon">📭</div>No operations yet.<br>Fill in Data Entry and click <strong>Copy Full Entry</strong> to log.</div>
+    </div>
+
+    <!-- HOLD TRANSACTIONS -->
+    <div id="holdContainer" style="display:none;margin-top:24px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:#8a3a00;border-radius:4px 4px 0 0;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;color:white;letter-spacing:2px;">⏸ HOLD TRANSACTIONS</span>
+        <span style="font-size:.58rem;color:rgba(255,255,255,.5);" id="holdCount"></span>
+      </div>
+      <div id="holdList" style="border:1px solid #c8a020;border-top:none;border-radius:0 0 4px 4px;overflow-x:auto;"></div>
+    </div>
+
+    </div>
+    <!-- OPS CLEAR MODAL -->
+    <div id="opsClearModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:8px;padding:24px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:800;color:#1a3a6e;letter-spacing:1px;margin-bottom:14px;">🗑 حذف العمليات</div>
+        <div id="opsClearDateList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:220px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onclick="closeOpsClearModal()" style="padding:6px 14px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:white;cursor:pointer;">إلغاء</button>
+          <button onclick="confirmOpsClear()" style="padding:6px 14px;font-size:.7rem;font-weight:800;border:none;border-radius:4px;background:#c04020;color:white;cursor:pointer;">حذف المحدد</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FX CLEAR MODAL -->
+    <div id="fxClearModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:8px;padding:24px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:800;color:#1a3a6e;letter-spacing:1px;margin-bottom:14px;">🗑 حذف الموافقات</div>
+        <div id="fxClearDateList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:220px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onclick="closeFxClearModal()" style="padding:6px 14px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:white;cursor:pointer;">إلغاء</button>
+          <button onclick="confirmFxClear()" style="padding:6px 14px;font-size:.7rem;font-weight:800;border:none;border-radius:4px;background:#c04020;color:white;cursor:pointer;">حذف المحدد</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOLD REASON MODAL -->
+    <div id="holdModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:8px;padding:24px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:800;color:#8a3a00;letter-spacing:1px;margin-bottom:12px;">⏸ HOLD — سبب الإيقاف</div>
+        <textarea id="holdReason" placeholder="مثال: استيفاء تغذية حساب / سعر اليورو..." rows="3"
+          style="width:100%;border:1.5px solid #c8a020;border-radius:4px;padding:8px;font-family:'JetBrains Mono',monospace;font-size:.78rem;resize:none;outline:none;color:#1a1a18;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+          <button onclick="closeHoldModal()" style="padding:6px 14px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:white;cursor:pointer;">إلغاء</button>
+          <button onclick="confirmHold()" style="padding:6px 14px;font-size:.7rem;font-weight:800;border:none;border-radius:4px;background:#c8601a;color:white;cursor:pointer;">تأكيد HOLD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 3: DAILY FX ══ -->
+  <div class="tab-pane" id="tab-fx" style="padding:18px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;color:var(--main);letter-spacing:2px;">💱 DAILY FX — APPROVALS</div>
+      <button onclick="fxAddRow()" style="margin-left:auto;padding:5px 14px;font-size:.65rem;font-weight:800;border:1.5px solid #1a3a6e;border-radius:3px;background:#1a3a6e;color:white;cursor:pointer;letter-spacing:1px;">+ موافقة</button>
+      <button onclick="fxClearAll()" style="padding:5px 12px;font-size:.62rem;border:1px solid var(--border);border-radius:3px;background:white;cursor:pointer;color:var(--dim);">🗑 Clear All</button>
+    </div>
+
+    <div style="overflow-x:auto;border-radius:4px;border:1px solid #c5cde0;">
+      <table style="min-width:1600px;width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.68rem;" id="fxFormTable">
+        <thead>
+          <tr style="background:#1a3a6e;color:white;font-size:.58rem;letter-spacing:.5px;">
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">#</th>
+            <th style="padding:5px 6px;text-align:left;white-space:nowrap;">BATCH</th>
+            <th style="padding:5px 6px;text-align:left;white-space:nowrap;">NAME</th>
+            <th style="padding:5px 6px;text-align:left;white-space:nowrap;">نوع</th>
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">نعم/لا</th>
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">CCY</th>
+            <th style="padding:5px 6px;text-align:right;white-space:nowrap;">AMOUNT</th>
+            <th style="padding:5px 6px;text-align:left;white-space:nowrap;">CLIENT</th>
+            <th style="padding:5px 6px;text-align:left;white-space:nowrap;">OUR REF</th>
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">CONTRACT</th>
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">RATE</th>
+            <th style="padding:5px 6px;text-align:center;white-space:nowrap;">STATUS</th>
+            <th style="padding:5px 6px;"></th>
+          </tr>
+        </thead>
+        <tbody id="fxTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ BATCH PANEL ══ -->
+
+
+  <!-- ══ إخطار وصول PANEL ══ -->
+  <!-- (moved to ekhtarScreen) -->
+  <!-- ══ BATCH SCREEN ══ -->
+  <div id="batchScreen" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <button class="back-btn" onclick="closeBatchScreen()">← رجوع</button>
+    </div>
+    <div class="section-wrap">
+      <div class="section-label" id="batchScreenLabel" style="background:#1a3a6e;letter-spacing:2px;">🗂 &nbsp;BATCH — Journal Entry</div>
+
+      <!-- SIEBEL tab bar -->
+      <div style="display:flex;align-items:center;background:#eef1f8;border:1px solid #c5cde0;border-top:none;border-bottom:2px solid #1a3a6e;">
+        <button id="batchTabMain" onclick="setBatchTab('MAIN')"
+          style="padding:7px 20px;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:white;color:#1a3a6e;border-bottom:3px solid #1a3a6e;margin-bottom:-2px;transition:all .2s;">
+          MAIN RATE
+        </button>
+        <button id="batchTabSiebel" onclick="setBatchTab('SIEBEL')"
+          style="padding:7px 20px;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:transparent;color:var(--dim);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;">
+          SIEBEL
+        </button>
+        <button id="batchTabMerge" onclick="setBatchTab('MERGE')"
+          style="padding:7px 20px;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:transparent;color:var(--dim);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;">
+          MERGE
+        </button>
+      </div>
+
+      <!-- SIEBEL rate input — hidden by default -->
+      <div id="siebelRateRow" style="display:none;padding:10px 14px;background:#f0f5fa;border:1px solid #c5cde0;border-top:none;border-bottom:none;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a3a6e;white-space:nowrap;">SIEBEL RATE</label>
+          <input type="number" id="siebelRate" placeholder="e.g. 51.25" step="0.0001" min="0"
+            style="width:140px;border:1.5px solid #1a3a6e;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a3a6e;outline:none;"
+            oninput="applyBatchRate()"/>
+        </div>
+      </div>
+
+      <!-- MERGE % inputs — hidden by default -->
+      <div id="mergeRateRow" style="display:none;padding:10px 14px;background:#fff8e8;border:1px solid #e8d090;border-top:none;border-bottom:none;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#8a5c00;white-space:nowrap;">MERGE %</label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:.6rem;color:#8a5c00;white-space:nowrap;">Row 1 %</label>
+            <input type="number" id="mergePct1" placeholder="e.g. 80" min="0" max="100" step="0.01"
+              style="width:80px;border:1.5px solid #c8a020;border-radius:3px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#8a5c00;outline:none;"
+              oninput="applyMerge()"/>
+            <span style="font-size:.7rem;color:#8a5c00;font-weight:800;">%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:.6rem;color:#8a5c00;white-space:nowrap;">Row 2 %</label>
+            <input type="number" id="mergePct2" readonly
+              style="width:80px;border:1.5px solid #c8a020;border-radius:3px;padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#8a5c00;background:#fff3cc;outline:none;"/>
+            <span style="font-size:.7rem;color:#8a5c00;font-weight:800;">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BATCH NUMBER — always visible -->
+      <div style="padding:10px 14px;background:#f5f7fc;border:1px solid #c5cde0;border-top:none;border-bottom:none;display:flex;align-items:center;gap:10px;">
+        <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a3a6e;white-space:nowrap;">BATCH NO.</label>
+        <input type="text" id="batchNumber" placeholder="e.g. 7001" maxlength="4"
+          style="width:100px;border:1.5px solid var(--border);border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a3a6e;outline:none;letter-spacing:2px;"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+      </div>
+
+      <div class="card" style="font-family:'JetBrains Mono',monospace;border-top:none;">
+        <div style="overflow-x:auto;padding:0;">
+          <table style="width:100%;border-collapse:collapse;font-size:.72rem;">
+            <thead>
+              <tr style="background:#e8edf5;color:#1a3a6e;">
+                <th style="padding:7px 8px;border:1px solid #c5cde0;text-align:left;white-space:nowrap;">TFC</th>
+                <th style="padding:7px 8px;border:1px solid #c5cde0;text-align:right;white-space:nowrap;">Amount</th>
+                <th id="bsColPct1H" style="padding:7px 8px;border:1px solid #c5cde0;text-align:right;white-space:nowrap;display:none;">%</th>
+                <th style="padding:7px 8px;border:1px solid #c5cde0;text-align:right;white-space:nowrap;">Exchange Rate</th>
+                <th style="padding:7px 8px;border:1px solid #c5cde0;text-align:right;white-space:nowrap;">LCY Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow1TFC" readonly style="min-width:160px;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow1Amount" style="text-align:right;" oninput="calcBsLCY(1)"/></td>
+                <td id="bsColPct1" style="padding:0;border:1px solid #c5cde0;display:none;"><input type="text" class="batch-cell auto-field" id="bsRow1Pct" readonly style="text-align:right;background:#fff8e8;color:#8a5c00;font-weight:800;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow1Rate" style="text-align:right;" oninput="calcBsLCY(1)"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow1LCY" readonly style="text-align:right;"/></td>
+              </tr>
+              <!-- Row 2 -->
+              <tr>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow2TFC" readonly style="min-width:160px;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow2Amount" style="text-align:right;" oninput="calcBsLCY(2)"/></td>
+                <td id="bsColPct2" style="padding:0;border:1px solid #c5cde0;display:none;"><input type="text" class="batch-cell auto-field" id="bsRow2Pct" readonly style="text-align:right;background:#fff8e8;color:#8a5c00;font-weight:800;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow2Rate" style="text-align:right;" oninput="calcBsLCY(2)"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow2LCY" readonly style="text-align:right;"/></td>
+              </tr>
+              <!-- Row 3 — MERGE only -->
+              <tr id="bsRow3Tr" style="display:none;">
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow3TFC" readonly style="min-width:160px;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow3Amount" style="text-align:right;" oninput="calcBsLCY(3)"/></td>
+                <td id="bsColPct3" style="padding:0;border:1px solid #c5cde0;display:none;"><input type="text" class="batch-cell auto-field" id="bsRow3Pct" readonly style="text-align:right;background:#f0f5fa;color:#1a3a6e;font-weight:800;"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell" id="bsRow3Rate" style="text-align:right;" oninput="calcBsLCY(3)"/></td>
+                <td style="padding:0;border:1px solid #c5cde0;"><input type="text" class="batch-cell auto-field" id="bsRow3LCY" readonly style="text-align:right;"/></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:24px;padding:10px 16px;border-top:2px solid #c5cde0;background:#f5f7fc;">
+          <div style="text-align:right;">
+            <div style="font-size:.62rem;color:var(--dim);letter-spacing:1px;">TOTAL DR</div>
+            <div style="font-size:.85rem;font-weight:800;color:#1a3a6e;" id="bsTotalDr">0.00</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:.62rem;color:var(--dim);letter-spacing:1px;">TOTAL CR</div>
+            <div style="font-size:.85rem;font-weight:800;color:#1a3a6e;" id="bsTotalCr">0.00</div>
+          </div>
+        </div>
+        <div style="padding:10px 16px;">
+          <button class="copy-btn" onclick="copyBatchScreen()">⎘ Copy Batch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MT400 SCREEN ══ -->
+  <div id="mt400Screen" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <button class="back-btn" onclick="closeMtScreen('mt400Screen')">← رجوع</button>
+    </div>
+    <div class="section-wrap">
+      <div class="section-label" id="mt400ScreenLabel" style="background:#1a5c3a;display:flex;align-items:center;gap:8px;letter-spacing:2px;"><span class="live-indicator">● LIVE</span>MT 400 — SWIFT</div>
+      <div class="card">
+        <div class="card-body">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+            <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a5c3a;white-space:nowrap;">ZCOM NUM</label>
+            <input type="text" id="zcomNum400" placeholder="e.g. 123456"
+              style="width:160px;border:1.5px solid #2d7a4f;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a5c3a;outline:none;letter-spacing:1px;"
+              oninput="this.value=this.value.replace(/\s/g,''); renderMt400Screen()"
+              onpaste="setTimeout(()=>{this.value=this.value.replace(/\s/g,'');renderMt400Screen();},0)"/>
+          </div>
+          <div id="mt400ValueDateRow" style="display:none;margin-bottom:12px;align-items:center;gap:10px;">
+            <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#c8601a;white-space:nowrap;">VALUE DATE ?</label>
+            <input type="text" id="mt400ValueDate" placeholder="e.g. 2026-03-16"
+              style="width:160px;border:1.5px solid #c8601a;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#c8601a;outline:none;letter-spacing:1px;"
+              oninput="renderMt400Screen()"/>
+          </div>
+          <div id="mt400ScreenPreview" style="background:#f8fff8;border:1.5px solid #a8d5b5;border-radius:4px;padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:.78rem;white-space:pre;line-height:2;color:#1a1a18;min-height:120px;"></div>
+
+          <!-- F57 + Correspondent — under preview -->
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a3a6e;white-space:nowrap;min-width:90px;">F57</label>
+              <input type="text" id="mt400F57" placeholder="e.g. CHASEUS33XXX"
+                style="width:220px;border:1.5px solid #1a3a6e;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:800;color:#1a3a6e;outline:none;letter-spacing:1px;"
+                oninput="this.value=this.value.replace(/\s/g,''); renderMt400Screen()"
+                onpaste="setTimeout(()=>{this.value=this.value.replace(/\s/g,'');renderMt400Screen();},0)"/>
+            </div>
+            <div id="mt400CorrRow" style="display:flex;align-items:center;gap:10px;">
+              <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#6e2d1a;white-space:nowrap;min-width:90px;">Correspondent</label>
+              <input type="text" id="mt400Correspondent" placeholder="e.g. BOFAUS3NXXX"
+                style="width:220px;border:1.5px solid #6e2d1a;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:800;color:#6e2d1a;outline:none;letter-spacing:1px;"
+                oninput="this.value=this.value.replace(/\s/g,''); renderMt400Screen()"
+                onpaste="setTimeout(()=>{this.value=this.value.replace(/\s/g,'');renderMt400Screen();},0)"/>
+            </div>
+          </div>
+
+          <div style="padding-top:12px;">
+            <button class="copy-btn" onclick="copyMt400Screen()">⎘ Copy MT400</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MT412 SCREEN ══ -->
+  <div id="mt412Screen" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <button class="back-btn" onclick="closeMtScreen('mt412Screen')">← رجوع</button>
+    </div>
+    <div class="section-wrap">
+      <div class="section-label" id="mt412ScreenLabel" style="background:#1a5c3a;display:flex;align-items:center;gap:8px;letter-spacing:2px;"><span class="live-indicator">● LIVE</span>MT 412 — SWIFT</div>
+      <div class="card">
+        <div class="card-body">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+            <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a5c3a;white-space:nowrap;">ZCOM NUM</label>
+            <input type="text" id="zcomNum412" placeholder="e.g. 123456"
+              style="width:160px;border:1.5px solid #2d7a4f;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a5c3a;outline:none;letter-spacing:1px;"
+              oninput="renderMt412Screen()"/>
+          </div>
+          <div id="mt412ScreenPreview" style="background:#f8fff8;border:1.5px solid #a8d5b5;border-radius:4px;padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:.78rem;white-space:pre;line-height:2;color:#1a1a18;min-height:180px;"></div>
+          <div style="padding-top:12px;">
+            <button class="copy-btn" onclick="copyMt412Screen()">⎘ Copy MT412</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end mainContent -->
+
+  <!-- ══ إخطار وصول SCREEN ══ -->
+  <div id="ekhtarScreen" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <button class="back-btn" onclick="closeEkhtarScreen()">← رجوع</button>
+    </div>
+    <div class="section-wrap">
+      <div class="section-label" style="background:#4a2a6e;letter-spacing:2px;font-family:'Syne',sans-serif;">📨 &nbsp;إخطار وصول</div>
+      <div class="card" id="ekhtarCard" style="direction:rtl;font-family:'Syne',sans-serif;">
+        <div class="card-body">
+          <div id="ekhtarPreview" style="background:#fdfbff;border:2px solid #d0b8f0;border-radius:8px;padding:40px 48px;line-height:2.6;font-size:1rem;font-weight:700;color:#1a1a18;position:relative;box-shadow:0 2px 12px rgba(74,42,110,.08);">
+
+            <!-- شريط علوي بنفسجي -->
+            <div style="position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#4a2a6e,#7a4aae);border-radius:6px 6px 0 0;"></div>
+
+            <!-- التاريخ -->
+            <div style="text-align:left;margin-bottom:28px;font-weight:800;direction:ltr;font-family:'JetBrains Mono',monospace;font-size:.9rem;color:#7a4aae;letter-spacing:1px;">
+              📅 &nbsp;القاهرة في: &nbsp;<span id="ekDate" style="color:#4a2a6e;"></span>
+            </div>
+
+            <!-- المستلم -->
+            <div style="margin-bottom:22px;font-size:1rem;font-weight:800;">
+              السادة / <span id="ekTo" style="color:#4a2a6e;border-bottom:2px solid #4a2a6e;padding-bottom:2px;">شركة ...</span>
+              <span style="color:#555;font-size:1rem;font-weight:800;margin-right:12px;">تحية طيبة وبعد،،،</span>
+            </div>
+
+            <!-- مقدمة -->
+            <div style="margin-bottom:20px;font-size:1rem;font-weight:700;">نحيط سيادتكم علما بورود مستندات شحن برسم التحصيل باسمكم وبياناتها كالتالي:</div>
+
+            <!-- بيانات العقد -->
+            <div style="background:#f3eeff;border-right:4px solid #4a2a6e;border-radius:0 6px 6px 0;padding:14px 20px;margin-bottom:20px;display:flex;flex-direction:column;gap:8px;">
+              <div style="font-size:1rem;font-weight:800;">رقمنا الإشاري: &nbsp;<span id="ekOurRef" style="color:#4a2a6e;font-family:'JetBrains Mono',monospace;letter-spacing:1px;"></span></div>
+              <div style="font-size:1rem;font-weight:800;">يبلغ: &nbsp;<span id="ekAmount" style="color:#1a5c3a;font-family:'JetBrains Mono',monospace;"></span></div>
+              <div style="font-size:1rem;font-weight:800;">شرط الدفع: &nbsp;<span id="ekPayment" style="color:#c8601a;"></span></div>
+            </div>
+
+            <!-- النص الرئيسي -->
+            <div style="text-align:justify;font-size:1rem;font-weight:700;line-height:2.4;color:#333;margin-bottom:14px;">برجاء التكرم بتقديم طلب مستندات برسم التحصيل الخاص بمصرفنا مع توضيح رقمنا الإشاري المذكور بعاليه و ذلك بعد التوقيع على الكمبيالات الواردة مع مستندات الشحن الموجودة طرفنا (ان وجد)، علما انه في حالة عدم تسلمكم للمستندات في خلال 60 يوم من تاريخه يحق لمصرفنا ردها مباشرة الى البنك المراسل دون ادنى مسئولية علينا في هذا الشأن طبقاً للقواعد والأعراف الدولية للتحصيلات المستندية مع خصم مصاريف البريد على حسابكم طرفنا.</div>
+
+            <!-- الملاحظة القانونية -->
+            <div style="font-size:.78rem;font-weight:700;color:#aaa;border-top:1px dashed #d0b8f0;padding-top:10px;margin-bottom:20px;">هذا التحصيل المستندي يخضع للقواعد والأعراف الدولية الموحدة الصادرة من غرفة التجارة الدولية بباريس – منشور رقم 522 لسنة 1996</div>
+
+            <!-- الختام -->
+            <div style="font-size:1rem;font-weight:800;margin-bottom:28px;">وتفضلوا بقبول فائق الاحترام،،،،</div>
+
+            <!-- التوقيع -->
+            <div style="text-align:right;border-top:1.5px solid #d0b8f0;padding-top:16px;">
+              <div style="font-weight:800;font-size:1rem;color:#4a2a6e;">🏦 بنك مصر</div>
+              <div style="font-size:1rem;font-weight:800;color:#4a2a6e;margin-top:4px;">فرع <span id="ekBranchName">...</span></div>
+            </div>
+          </div>
+
+          <div class="fields-grid fg-2" style="margin-top:16px;gap:10px;">
+            <div class="field-group">
+              <label class="field-label">السادة / اسم الشركة</label>
+              <input type="text" class="field-input" id="ekToInput" placeholder="اسم الشركة..." oninput="updateEkhtarPreview()" style="direction:rtl;"/>
+            </div>
+            <div class="field-group">
+              <label class="field-label">اسم الفرع</label>
+              <input type="text" class="field-input" id="ekBranchInput" placeholder="مثال: المقطم" oninput="updateEkhtarPreview()" style="direction:rtl;"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MT 410 SCREEN ══ -->
+  <div id="mt410Screen" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <button class="back-btn" onclick="closeMt410Screen()">← رجوع</button>
+    </div>
+    <div class="section-wrap">
+      <div class="section-label" style="background:#1a5c3a;display:flex;align-items:center;gap:8px;letter-spacing:2px;"><span class="live-indicator">● LIVE</span><span id="mt410Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;transition:background .3s;"></span>MT 410 — SWIFT</div>
+      <div class="card">
+        <div class="card-body">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+            <label style="font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:#1a5c3a;white-space:nowrap;">ZCOM NUM</label>
+            <input type="text" id="zcomNum410" placeholder="e.g. 123456"
+              style="width:160px;border:1.5px solid #2d7a4f;border-radius:3px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:800;color:#1a5c3a;outline:none;letter-spacing:1px;"
+              oninput="renderMt410()"/>
+          </div>
+          <div id="mt410Preview" style="background:#f8fff8;border:1.5px solid #a8d5b5;border-radius:4px;padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:.78rem;white-space:pre;line-height:2;color:#1a1a18;min-height:200px;"></div>
+          <div style="padding-top:12px;">
+            <button class="copy-btn" onclick="copyMt410()">⎘ Copy MT410</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="signature-bar">
+    <div class="sig-line"></div>
+    <div class="sig-box" oncontextmenu="return false;">
+      <div class="sig-by">Designed &amp; Built by</div>
+      <div class="sig-name" id="sigName">Youssef Hakeem</div>
+    </div>
+    <div class="sig-line"></div>
+  </div>
+
+</div>
+</div>
+<!-- Edit Modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:6px;padding:24px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <span style="font-size:.75rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dark);">✏️ Edit Operation</span>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--dim);">✕</button>
+    </div>
+    <div class="fields-grid fg-1" style="gap:10px;">
+      <div class="field-group">
+        <label class="field-label">Contract Number</label>
+        <input type="text" class="field-input" id="editContract" placeholder="e.g. CNT-2024-00123"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">OUR REF</label>
+        <input type="text" class="field-input" id="editOurRef"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">FORM 4 REF</label>
+        <input type="text" class="field-input" id="editForm4Ref"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ticket No.</label>
+        <input type="text" class="field-input" id="editTicket"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Branch No.</label>
+        <input type="text" class="field-input" id="editBranch"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Customer ID</label>
+        <input type="text" class="field-input" id="editCustomer"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bank Reference</label>
+        <input type="text" class="field-input" id="editBankRef"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">MCBE</label>
+        <input type="text" class="field-input" id="editMcbe"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Amount</label>
+        <input type="text" class="field-input" id="editAmount"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Maturity Date</label>
+        <input type="text" class="field-input" id="editMaturity" placeholder="DD/MM/YYYY"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveEdit()" style="flex:1;">💾 Save</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied ✓</div>
+
+<script>
+const PREFIX = 'TFCOL6';
+const SWIFT_CUTOFF = new Date(2025, 10, 23);
+const STORAGE_KEY = 'yh_operations';
+let commUnit = '%';
+let currentContractType = '';
+let advanceOn = false;
+
+// ── Load operations ──
+let operations = [];
+try { const s = localStorage.getItem(STORAGE_KEY); if (s) operations = JSON.parse(s); } catch(e) {}
+let fxRows = [];
+let fxActiveId = null;
+
+let clsiSubTab = '103';
+let nonClsiSubTab = '';
+
+function setNonClsiSubTab(tab) {
+  nonClsiSubTab = tab;
+  const is103   = tab === '103';
+  const is202   = tab === '202';
+  const isNEZ   = tab === 'NEZ';
+  const isBATCH = tab === 'BATCH';
+  const isMT400 = tab === 'MT400';
+  const isMT412 = tab === 'MT412';
+
+  // BATCH — hide for نظامية, MT410 — show for نظامية
+  const ncBatchBtn = document.getElementById('ncSubTabBATCH');
+  const ncMt410Btn = document.getElementById('ncSubTabMT410');
+  if (ncBatchBtn) ncBatchBtn.style.display = isNEZ ? 'none' : '';
+  if (ncMt410Btn) ncMt410Btn.style.display = isNEZ ? 'inline-flex' : 'none';
+
+  // TBO N. row — show for 103 only
+  const tboRow = document.getElementById('tboSiebelRow');
+  if (tboRow) tboRow.style.display = is103 ? 'block' : 'none';
+
+  // OUR button — hide for 202
+  const ourBtn = document.getElementById('ourToggleBtn');
+  const ourRow = document.getElementById('ourTransferRow');
+  if (ourBtn) ourBtn.style.display = is202 ? 'none' : '';
+  const brg = document.getElementById('bankRefGroup');
+  if (brg) brg.style.display = (is202 || isMT400 || isMT412 || isNEZ) ? 'flex' : 'none';
+
+  // MT400 + MT412 tabs — show when 202 active OR when on one of them (keep both visible so you can switch)
+  const showMtTabs = is202 || isMT400 || isMT412;
+  document.getElementById('ncSubTabMT400').style.display = showMtTabs ? 'inline-flex' : 'none';
+  document.getElementById('ncSubTabMT412').style.display = showMtTabs ? 'inline-flex' : 'none';
+
+  // إخطار وصول — show when نظامية active
+  document.getElementById('ncSubTabEKHTAR').style.display = isNEZ ? 'inline-flex' : 'none';
+
+  // Panels — batch now opens as screen via button
+
+  // Hide advance + MCBE for نظامية
+  const advSec = document.getElementById('advanceSection');
+  if (advSec) advSec.style.display = isNEZ ? 'none' : '';
+  document.getElementById('mcbeSection').style.display = isNEZ ? 'none' : (advanceOn ? 'block' : 'none');
+
+  // Highlight active tabs
+  const ncTabs = {
+    '103':'ncSubTab103','202':'ncSubTab202','NEZ':'ncSubTabNEZ',
+    'BATCH':'ncSubTabBATCH','MT400':'ncSubTabMT400','MT412':'ncSubTabMT412'
+  };
+  Object.entries(ncTabs).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.background = key === tab ? 'var(--main-color)' : 'white';
+    el.style.color      = key === tab ? 'white'            : 'var(--dim)';
+  });
+
+}
+
+function setClsiSubTab(tab) {
+  clsiSubTab = tab;
+  const is103   = tab === '103';
+  const is202   = tab === '202';
+  const isNEZ   = tab === 'NEZ';
+  const isMT400 = tab === 'MT400';
+  const isBATCH = tab === 'BATCH';
+  const isADV   = tab === 'ADV';
+
+  // TBO N. row — show for 103 only
+  const tboRow = document.getElementById('tboSiebelRow');
+  if (tboRow) tboRow.style.display = is103 ? 'block' : 'none';
+
+  // OUR button — hide for 202
+  const ourBtn = document.getElementById('ourToggleBtn');
+  const ourRow = document.getElementById('ourTransferRow');
+  if (ourBtn) ourBtn.style.display = is202 ? 'none' : '';
+  if (is202 && ourTransferOn) {
+    ourTransferOn = false;
+    if (ourRow) ourRow.style.display = 'none';
+    if (ourBtn) { ourBtn.style.background='white'; ourBtn.style.color='var(--dim)'; ourBtn.style.borderColor='var(--border)'; }
+  }
+
+  // Bank Reference — show for 202 and NEZ
+  document.getElementById('bankRefGroup').style.display = (is202 || isNEZ) ? 'flex' : 'none';
+
+  // BATCH — hide for نظامية, MT410 — show for نظامية
+  const clBatchBtn = document.getElementById('subTabBATCH');
+  const clMt410Btn = document.getElementById('subTabMT410');
+  if (clBatchBtn) clBatchBtn.style.display = isNEZ ? 'none' : '';
+  if (clMt410Btn) clMt410Btn.style.display = isNEZ ? 'inline-flex' : 'none';
+
+  // Hide Advance Payment section for نظامية AND for ADV tab (it's always ON there)
+  const advSec = document.getElementById('advanceSection');
+  if (advSec) advSec.style.display = (isNEZ || isADV) ? 'none' : '';
+
+  // For ADV tab: force advance ON and show MCBE
+  if (isADV) {
+    if (!advanceOn) {
+      advanceOn = true;
+      document.getElementById('advanceCheck').checked = true;
+      document.getElementById('advanceToggle').classList.add('on');
+      document.getElementById('advanceStatus').textContent = 'ON';
+    }
+    document.getElementById('mcbeSection').style.display = 'block';
+  } else {
+    document.getElementById('mcbeSection').style.display = isNEZ ? 'none' : (advanceOn ? 'block' : 'none');
+  }
+
+  // MT 400 tab — show when 202 active or MT400
+  document.getElementById('subTabMT400').style.display = (is202 || isMT400) ? 'inline-flex' : 'none';
+
+  // إخطار وصول tab — show when نظامية active
+  document.getElementById('subTabEKHTAR').style.display = isNEZ ? 'inline-flex' : 'none';
+
+  // Panels
+  document.getElementById('mt400Panel').style.display  = 'none';
+
+  // Style active tabs
+  const tabs = { 'ADV':'subTabADV','103':'subTab103','202':'subTab202','NEZ':'subTabNEZ','EKHTAR':'subTabEKHTAR','BATCH':'subTabBATCH','MT400':'subTabMT400' };
+  Object.entries(tabs).forEach(([key,id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.background = key===tab ? 'var(--main-color)' : 'white';
+    el.style.color       = key===tab ? 'white'            : 'var(--dim)';
+  });
+
+  // Show VALUE DATE (swift section) on ADV tab always
+  const swiftSec = document.getElementById('swiftCommSection');
+  if (swiftSec && isADV) swiftSec.style.display = 'block';
+
+  if (isMT400) updateSwiftPreview();
+}
+
+const BRANCH_NAMES = {
+  '140': 'فرع المعاملات الدولية'
+};
+
+function showBranchName() {
+  const val   = document.getElementById('branchNum').value.trim();
+  const badge = document.getElementById('branchNameBadge');
+  const text  = document.getElementById('branchNameText');
+  const name  = BRANCH_NAMES[val];
+  if (name) {
+    text.textContent = name;
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function updateEkhtarDot() {
+  const to     = document.getElementById('ekToInput')?.value.trim()     || '';
+  const branch = document.getElementById('ekBranchInput')?.value.trim() || '';
+  const ready  = !!(to && branch);
+  ['ekhtarDot','ekhtarDotNc'].forEach(id => {
+    const dot = document.getElementById(id);
+    if (dot) dot.style.background = ready ? '#2d7a4f' : '#c04020';
+  });
+  const card = document.getElementById('ekhtarCard');
+  if (card) {
+    card.style.background  = ready ? '#e8f5ee' : '';
+    card.style.borderColor = ready ? '#2d7a4f' : '';
+    card.style.boxShadow   = ready ? '0 0 0 2px rgba(45,122,79,.2)' : '';
+  }
+}
+
+function getEkhtarText() {
+  const ourRef   = document.getElementById('ourRef').value.trim()   || '...';
+  const amount   = document.getElementById('docAmount').value.trim() || '...';
+  const currency = document.getElementById('currency').value         || '';
+  const to       = document.getElementById('ekToInput')?.value.trim()     || '';
+  const branch   = document.getElementById('ekBranchInput')?.value.trim() || 'المقطم';
+  const payment  = currentContractType === 'CLSI' ? 'الدفع مقابل المستندات' : 'آجل';
+  const now      = new Date();
+  const date     = `${now.getFullYear()} / ${String(now.getMonth()+1).padStart(2,'0')} / ${String(now.getDate()).padStart(2,'0')}`;
+  const toLine   = to ? `شركة ${to}` : 'شركة ...';
+  return { ourRef, amount, currency, to: toLine, branch, payment, date };
+}
+
+function openEkhtarScreen() {
+  updateEkhtarPreview();
+  ['clsiSubTabs','nonClsiSubTabs','tab-entry','tab-ops'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.querySelector('.tabs').style.display = 'none';
+  ['mt400Screen','mt412Screen','batchScreen','ekhtarScreen','mt410Screen'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.getElementById('ekhtarScreen').style.display = 'block';
+}
+
+function openMt410Screen() {
+  ['clsiSubTabs','nonClsiSubTabs','tab-entry','tab-ops'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.querySelector('.tabs').style.display = 'none';
+  ['mt400Screen','mt412Screen','batchScreen','ekhtarScreen','mt410Screen'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+  document.getElementById('mt410Screen').style.display = 'block';
+  renderMt410();
+}
+
+function closeMt410Screen() {
+  document.getElementById('mt410Screen').style.display = 'none';
+  document.querySelector('.tabs').style.display = '';
+  document.getElementById('tab-entry').style.display = 'block';
+  if (currentContractType === 'CLSI') { document.getElementById('clsiSubTabs').style.display='block'; setClsiSubTab(clsiSubTab); }
+  else { document.getElementById('nonClsiSubTabs').style.display='block'; setNonClsiSubTab(nonClsiSubTab); }
+}
+
+function renderMt410() {
+  const ourRef  = document.getElementById('ourRef')?.value.trim()    || '';
+  const bankRef = document.getElementById('bankRef')?.value.trim()   || '...';
+  const currency= document.getElementById('currency')?.value          || '';
+  const amount  = document.getElementById('docAmount')?.value.trim() || '';
+  const zcom    = document.getElementById('zcomNum410')?.value.trim() || '';
+  const preview = document.getElementById('mt410Preview');
+  if (!preview) return;
+
+  const ready = !!(ourRef && currency && amount);
+  preview.style.background  = ready ? '#d4edda' : '#f8fff8';
+  preview.style.borderColor = ready ? '#2d7a4f' : '#a8d5b5';
+
+  const lines = ready ? [
+    `20: OUR REF  ${ourRef}`,
+    `21: BANK REF ${bankRef}`,
+    `FOR ${currency} ${parseFloat(amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`,
+    `KINDLY CONSIDER THIS MESSAGE AS MT 410`,
+    `WE ACKNOWLEDGE RECEIPT OF DOCUMENTS UNDER YR ABOVE REF., WE HAVE`,
+    `CONTACTED DRAWEE TO RELEASE DOCS. AS PER COLLECTION INSTRUCTIONS`,
+    `AND AWAITING THEIR FEEDBACK.`,
+    `KINDLY CONSIDER THIS MESSAGE AS AN ADVICE OF NON-PAYMENT/NON-ACCEPTANCE`,
+    `IN ACCORDANCE WITH SUB ARTICLE 26C OF URC 522.`,
+    `IN CASE DOCS. BEING RETURNED, WE RESERVE THE RIGHT TO CLAIM OUR`,
+    `UNPAID CHARGES FROM YOUR GOOD BANK.`,
+    `WE DO NOT PROTEST IN CASE OF NON-PAYMENT/ NON-ACCEPTANCE`,
+    `BEST REGARDS`,
+    `TRADE FINANCE CENTRAL DEPARTMENT`,
+    `BANQUE MISR`,
+  ] : [];
+  if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+  preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
+
+  const dot = document.getElementById('mt410Dot');
+  if (dot) dot.style.background = ready ? '#2d7a4f' : '#c04020';
+  ['subTabMT410','ncSubTabMT410'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.style.background = ready ? '#2d7a4f' : 'white';
+    btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  });
+}
+
+function copyMt410() {
+  const el = document.getElementById('mt410Preview');
+  if (el) smartCopy(el.textContent, 'MT410 copied ✓');
+}
+
+function closeEkhtarScreen() {
+  document.getElementById('ekhtarScreen').style.display = 'none';
+  document.querySelector('.tabs').style.display = '';
+  document.getElementById('tab-entry').style.display = 'block';
+  if (currentContractType === 'CLSI') {
+    document.getElementById('clsiSubTabs').style.display = 'block';
+    setClsiSubTab(clsiSubTab);
+  } else {
+    document.getElementById('nonClsiSubTabs').style.display = 'block';
+    setNonClsiSubTab(nonClsiSubTab);
+  }
+}
+
+function updateEkhtarPreview() {
+  const to      = document.getElementById('ekToInput')?.value.trim()     || '';
+  const branch  = document.getElementById('ekBranchInput')?.value.trim() || '';
+  const ourRef  = document.getElementById('ourRef')?.value.trim()        || '...';
+  const amount  = document.getElementById('docAmount')?.value.trim()     || '...';
+  const currency= document.getElementById('currency')?.value             || '';
+  const payment = currentContractType === 'CLSI' ? 'الدفع مقابل المستندات' : 'آجل';
+  const now     = new Date();
+  const date    = `${now.getFullYear()} / ${String(now.getMonth()+1).padStart(2,'0')} / ${String(now.getDate()).padStart(2,'0')}`;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('ekDate',       date);
+  set('ekTo',         to ? 'شركة ' + to : 'شركة ...');
+  set('ekOurRef',     ourRef);
+  set('ekAmount',     amount + (currency ? ' ' + currency : ''));
+  set('ekPayment',    payment);
+  set('ekBranchName', branch || '...');
+
+  // Tab turns green when ready
+  const ready = !!(to && branch);
+  // Color the tab buttons green when ready
+  ['subTabEKHTAR','ncSubTabEKHTAR'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.style.background = ready ? '#2d7a4f' : 'white';
+    btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  });
+  // Reset preview to purple always
+  const preview = document.getElementById('ekhtarPreview');
+  if (preview) {
+    preview.style.background  = '#fdfbff';
+    preview.style.borderColor = '#d0b8f0';
+    preview.style.boxShadow   = '0 2px 12px rgba(74,42,110,.08)';
+  }
+}
+
+function updateEkhtarDot() { updateEkhtarPreview(); }
+
+function copyEkhtar() {
+  const d = getEkhtarText();
+  const text = `القاهرة في: ${d.date}
+
+السادة / ${d.to}   تحية طيبة وبعد،،،
+
+نحيط سيادتكم علما بورود مستندات شحن برسم التحصيل باسمكم وبياناتها كالتالي:
+
+رقمنا الإشاري: ${d.ourRef}
+يبلغ: ${d.amount} ${d.currency}
+أسم المورد: ${d.supplier}
+شرط الدفع: ${d.payment}
+
+برجاء التكرم بتقديم طلب مستندات برسم التحصيل الخاص بمصرفنا مع توضيح رقمنا الإشاري المذكور بعاليه و ذلك بعد التوقيع على الكمبيالات الواردة مع مستندات الشحن الموجودة طرفنا (ان وجد)، علما انه في حالة عدم تسلمكم للمستندات في خلال 60 يوم من تاريخه يحق لمصرفنا ردها مباشرة الى البنك المراسل دون ادنى مسئولية علينا في هذا الشأن طبقاً للقواعد والأعراف الدولية للتحصيلات المستندية مع خصم مصاريف البريد على حسابكم طرفنا.
+
+وتفضلوا بقبول فائق الاحترام،،،،
+
+بنك مصر
+فرع ${d.branch}`;
+  smartCopy(text, 'Letter copied ✓');
+}
+
+
+
+
+
+function openBatchScreen() {
+  ['clsiSubTabs','nonClsiSubTabs','tab-entry','tab-ops'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.querySelector('.tabs').style.display = 'none';
+  ['mt400Screen','mt412Screen','batchScreen'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  const ourRef = document.getElementById('ourRef')?.value || '';
+  const docAmt = parseFloat(document.getElementById('docAmount')?.value) || 0;
+  const exRate = parseFloat(document.getElementById('exchRate')?.value)  || 0;
+  const fmt    = v => v.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const type   = currentContractType || '';
+  document.getElementById('batchScreenLabel').textContent = `🗂  ${type} BATCH — Journal Entry`;
+  document.getElementById('bsRow1TFC').value = ourRef;
+  document.getElementById('bsRow2TFC').value = ourRef;
+  document.getElementById('bsRow3TFC').value = ourRef;
+  document.getElementById('siebelRate').value = '';
+  setBatchTab('MAIN');
+  document.getElementById('bsRow1Amount').value = docAmt && exRate ? fmt(docAmt * exRate) : '';
+  document.getElementById('bsRow2Amount').value = docAmt           ? fmt(docAmt)          : '';
+  document.getElementById('bsRow1Rate').value = '1';
+  document.getElementById('bsRow2Rate').value = exRate || '';
+  calcBsLCY(1); calcBsLCY(2);
+  document.getElementById('batchScreen').style.display = 'block';
+}
+
+function setBatchTab(tab) {
+  const isMain   = tab === 'MAIN';
+  const isSiebel = tab === 'SIEBEL';
+  const isMerge  = tab === 'MERGE';
+  const tabs = ['batchTabMain','batchTabSiebel','batchTabMerge'];
+  const keys  = ['MAIN','SIEBEL','MERGE'];
+  tabs.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const active = keys[i] === tab;
+    el.style.background   = active ? 'white' : 'transparent';
+    el.style.color        = active ? '#1a3a6e' : 'var(--dim)';
+    el.style.borderBottom = active ? '3px solid #1a3a6e' : '3px solid transparent';
+  });
+  document.getElementById('siebelRateRow').style.display  = isSiebel ? 'block' : 'none';
+  document.getElementById('mergeRateRow').style.display   = isMerge  ? 'block' : 'none';
+  // Show/hide % columns and Row 3
+  ['bsColPct1H','bsColPct1','bsColPct2','bsColPct3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isMerge ? '' : 'none';
+  });
+  const row3 = document.getElementById('bsRow3Tr');
+  if (row3) row3.style.display = isMerge ? '' : 'none';
+  // Show/hide SIEBEL N. field in main form
+  const sng = document.getElementById('siebelNumGroup');
+  if (sng) sng.style.display = isSiebel ? 'block' : 'none';
+  // Restore rates on MAIN
+  if (isMain) {
+    const exRate = parseFloat(document.getElementById('exchRate')?.value) || 0;
+    const docAmt = parseFloat(document.getElementById('docAmount')?.value) || 0;
+    const fmt    = v => v.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('bsRow1Amount').value = docAmt && exRate ? fmt(docAmt * exRate) : '';
+    document.getElementById('bsRow2Amount').value = docAmt ? fmt(docAmt) : '';
+    document.getElementById('bsRow1Rate').value   = '1';
+    document.getElementById('bsRow2Rate').value   = exRate || '';
+    calcBsLCY(1); calcBsLCY(2);
+  }
+  if (isMerge) {
+    setTimeout(applyMerge, 0);
+  }
+}
+
+function applyBatchRate() {
+  const sRate  = parseFloat(document.getElementById('siebelRate').value) || 0;
+  const docAmt = parseFloat(document.getElementById('docAmount')?.value)  || 0;
+  const fmt    = v => v.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (!sRate) return;
+  document.getElementById('bsRow1Amount').value = docAmt && sRate ? fmt(docAmt * sRate) : '';
+  document.getElementById('bsRow2Amount').value = docAmt ? fmt(docAmt) : '';
+  document.getElementById('bsRow1Rate').value   = '1';
+  document.getElementById('bsRow2Rate').value   = sRate;
+  calcBsLCY(1); calcBsLCY(2);
+}
+
+function applyMerge() {
+  const pct1In = parseFloat(document.getElementById('mergePct1').value) || 0;
+  const pct2   = Math.max(0, 100 - pct1In);
+  document.getElementById('mergePct2').value = pct2.toFixed(2);
+
+  const docAmt = parseFloat(document.getElementById('docAmount')?.value) || 0;
+  const exRate = parseFloat(document.getElementById('exchRate')?.value)  || 0;
+  if (!docAmt || !exRate) return;
+
+  const fmt      = v => v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const totalLCY = docAmt * exRate;
+
+  // Row 1: Amount = totalLCY × pct1% — Rate = 1
+  const lcy1 = totalLCY * (pct1In / 100);
+  document.getElementById('bsRow1Amount').value = fmt(lcy1);
+  document.getElementById('bsRow1Rate').value   = '1';
+  document.getElementById('bsRow1Pct').value    = pct1In.toFixed(2) + '%';
+
+  // Row 2: Amount = totalLCY × pct2% — Rate = 1
+  const lcy2 = totalLCY * (pct2 / 100);
+  document.getElementById('bsRow2Amount').value = fmt(lcy2);
+  document.getElementById('bsRow2Rate').value   = '1';
+  document.getElementById('bsRow2Pct').value    = pct2.toFixed(2) + '%';
+
+  // Row 3: Amount = docAmt (USD) — Rate = exRate
+  document.getElementById('bsRow3Amount').value = fmt(docAmt);
+  document.getElementById('bsRow3Rate').value   = String(exRate);
+  document.getElementById('bsRow3Pct').value    = '100%';
+
+  calcBsLCY(1); calcBsLCY(2); calcBsLCY(3);
+}
+
+function closeBatchScreen() {
+  document.getElementById('batchScreen').style.display = 'none';
+  document.querySelector('.tabs').style.display = '';
+  const isCLSI = currentContractType === 'CLSI';
+  document.getElementById('tab-entry').style.display = 'block';
+  if (isCLSI) {
+    document.getElementById('clsiSubTabs').style.display = 'block';
+    setClsiSubTab(clsiSubTab);
+  } else {
+    document.getElementById('nonClsiSubTabs').style.display = 'block';
+    setNonClsiSubTab(nonClsiSubTab);
+  }
+}
+
+function calcBsLCY(row) {
+  const clean = s => parseFloat((s||'').replace(/[,،\s]/g,'')) || 0;
+  const amt  = clean(document.getElementById(`bsRow${row}Amount`)?.value || '');
+  const rate = clean(document.getElementById(`bsRow${row}Rate`)?.value   || '') || 1;
+  const lcy  = amt * rate;
+  const fmt  = v => v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const el   = document.getElementById(`bsRow${row}LCY`);
+  if (el) el.value = lcy ? fmt(lcy) : '';
+
+  const isMerge = document.getElementById('bsRow3Tr')?.style.display !== 'none';
+  const lcy1 = clean(document.getElementById('bsRow1LCY')?.value || '');
+  const lcy2 = clean(document.getElementById('bsRow2LCY')?.value || '');
+  const lcy3 = isMerge ? clean(document.getElementById('bsRow3LCY')?.value || '') : 0;
+
+  if (isMerge) {
+    document.getElementById('bsTotalDr').textContent = fmt(lcy1 + lcy2);
+    document.getElementById('bsTotalCr').textContent = fmt(lcy3);
+  } else {
+    document.getElementById('bsTotalDr').textContent = fmt(lcy1);
+    document.getElementById('bsTotalCr').textContent = fmt(lcy2);
+  }
+}
+
+function copyBatchScreen() {
+  const batchNum = document.getElementById('batchNumber')?.value || '';
+  smartCopy(batchNum || '—', batchNum ? 'BATCH NO. copied ✓' : 'لا يوجد BATCH NO.');
+}
+
+function openMtScreen(screenId) {
+  // Hide the regular content areas, show only the target screen
+  ['clsiSubTabs','nonClsiSubTabs','tab-entry','tab-ops'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.querySelector('.tabs').style.display = 'none';
+  ['mt400Screen','mt412Screen','batchScreen'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById(screenId).style.display = 'block';
+  if (screenId === 'mt400Screen') renderMt400Screen();
+  if (screenId === 'mt412Screen') renderMt412Screen();
+}
+
+function closeMtScreen(screenId) {
+  document.getElementById(screenId).style.display = 'none';
+  // Restore regular content
+  document.querySelector('.tabs').style.display = '';
+  const isCLSI = currentContractType === 'CLSI';
+  const tabEntry = document.getElementById('tab-entry');
+  if (tabEntry) tabEntry.style.display = 'block';
+  if (isCLSI) {
+    document.getElementById('clsiSubTabs').style.display = 'block';
+    setClsiSubTab(clsiSubTab);
+  } else {
+    document.getElementById('nonClsiSubTabs').style.display = 'block';
+    setNonClsiSubTab(nonClsiSubTab);
+  }
+}
+
+function renderMt400Screen() {
+  const ourRef   = document.getElementById('ourRef')?.value.trim()    || '';
+  const bankRef  = document.getElementById('bankRef')?.value.trim()   || '';
+  const currency = document.getElementById('currency')?.value          || '';
+  const amount   = document.getElementById('docAmount')?.value.trim() || '';
+  const zcom     = document.getElementById('zcomNum400')?.value.trim() || '';
+  const valueDate = (() => {
+    // If today is Wed(3) or Thu(4), return '?' for manual entry
+    const today = new Date();
+    const dow = today.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+    const manualEl = document.getElementById('mt400ValueDate');
+    if (dow === 3 || dow === 4) {
+      // Show manual input, use its value or placeholder
+      if (manualEl) manualEl.style.display = '';
+      const manual = manualEl?.value.trim();
+      return manual || 'VALUE DATE ?';
+    }
+    // Auto: today + 2 business days (skip Fri=5, Sat=6)
+    let d = new Date(today);
+    let added = 0;
+    while (added < 2) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() !== 5 && d.getDay() !== 6) added++;
+    }
+    if (manualEl) manualEl.style.display = 'none';
+    const yyyy = d.getFullYear();
+    const mm   = String(d.getMonth()+1).padStart(2,'0');
+    const dd   = String(d.getDate()).padStart(2,'0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+  const type     = currentContractType || '';
+  const isCLSI   = type === 'CLSI';
+  const ready    = !!(ourRef && currency && amount);
+
+  const label = document.getElementById('mt400ScreenLabel');
+  if (label) label.innerHTML = `<span class="live-indicator">● LIVE</span>${type} MT 400 — SWIFT`;
+
+  const preview = document.getElementById('mt400ScreenPreview');
+  if (preview) {
+    preview.style.background  = ready ? '#d4edda' : '#f8fff8';
+    preview.style.borderColor = ready ? '#2d7a4f' : '#a8d5b5';
+
+    const advanceActive = document.getElementById('advTransferRow')?.style.display !== 'none';
+    const transferVal   = document.getElementById('transferDisplay')?.textContent || '';
+    const forAmount     = (advanceOn && advanceActive && transferVal && transferVal !== '—')
+      ? transferVal : amount;
+    const f57          = document.getElementById('mt400F57')?.value.trim()            || '';
+    const correspondent= document.getElementById('mt400Correspondent')?.value.trim()  || '';
+
+    // OUR only applies on 103 tab
+    const is103now = clsiSubTab === '103' || nonClsiSubTab === '103';
+    const ourActive = ourTransferOn && is103now;
+
+    // Show/hide Correspondent row
+    const corrRow = document.getElementById('mt400CorrRow');
+    if (corrRow) corrRow.style.display = ourActive ? 'none' : 'flex';
+
+    const fmt = v => parseFloat((v||'0').replace(/,/g,'')).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    // Build CLSI lines
+    const clsiLines = [
+      `KINDLY CONSIDER THIS MESSAGE AS MT400`,
+      `YOUR REF. ${bankRef || '...'}`,
+      `OUR REF.  ${ourRef}`,
+      `WE REFER TO YOUR SCHEDULE`,
+      `FOR COLL. AMOUNT ${currency} ${fmt(amount)}`,
+      `PLS BE INFORMED THAT WE HAVE CREDITED YOUR`,
+      `A/C HELD WITH ${f57 || ''}`,
+    ];
+    clsiLines.push(`THROUGT ${correspondent || ''}`);
+    clsiLines.push(
+      `FOR ${currency} ${fmt(forAmount)} VALUE DD ${valueDate}`,
+      `BEST REGARDS`,
+      `TRADE FINANCE CENTRAL DEPARTMENT`,
+    );
+
+    const lines = ready ? (isCLSI ? clsiLines : [
+      `OUR REF   ${ourRef}`,
+      `YOUR REF  ${bankRef || '...'}`,
+      ``,
+      `WE ACKNOWLEDGE THAT WE SENT TO YOU FOR AMOUNT - ${amount} ${currency}`,
+      `WITHOUT ANY RESPONSE FOR US`,
+    ]) : [];
+
+    if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+    preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
+  }
+
+  // Show value date row only on CLSI + Wed/Thu
+  const vdRow = document.getElementById('mt400ValueDateRow');
+  if (vdRow) {
+    const dow = new Date().getDay();
+    vdRow.style.display = (isCLSI && (dow === 3 || dow === 4)) ? 'flex' : 'none';
+  }
+
+  ['mt400Dot','ncMt400Dot'].forEach(id => {
+    const d = document.getElementById(id);
+    if (d) d.style.background = ready ? '#2d7a4f' : '#c04020';
+  });
+}
+
+function renderMt412Screen() {
+  const ourRef   = document.getElementById('ourRef')?.value.trim()      || '';
+  const bankRef  = document.getElementById('bankRef')?.value.trim()     || '';
+  const currency = document.getElementById('currency')?.value            || '';
+  const amount   = document.getElementById('docAmount')?.value.trim()   || '';
+  const maturity = document.getElementById('maturityDate')?.value.trim()|| '';
+  const zcom     = document.getElementById('zcomNum412')?.value.trim()  || '';
+  const type     = currentContractType || '';
+  const isCLUW   = type === 'CLUW';
+  const ready    = !!(ourRef && currency && amount);
+
+  // FOR AMOUNT = transfer amount if advance ON, else full amount
+  const advanceActive = document.getElementById('advTransferRow')?.style.display !== 'none';
+  const transferVal   = document.getElementById('transferDisplay')?.textContent || '';
+  const forAmount     = (advanceOn && advanceActive && transferVal && transferVal !== '—')
+    ? transferVal : amount;
+
+  const label = document.getElementById('mt412ScreenLabel');
+  if (label) label.innerHTML = `<span class="live-indicator">● LIVE</span>${type} MT 412 — SWIFT`;
+
+  const preview = document.getElementById('mt412ScreenPreview');
+  if (preview) {
+    preview.style.background  = ready ? '#d4edda' : '#f8fff8';
+    preview.style.borderColor = ready ? '#2d7a4f' : '#a8d5b5';
+
+    const lines = ready ? (isCLUW ? [
+      `PLS CONSIDER THIS  MESSAGE AS MT 412`,
+      `OR REF.   ${ourRef}`,
+      `YOUR REF. ${bankRef || '...'}`,
+      `ENCLOSING DOCS FOR ${currency} ${amount}`,
+      `AGAINST DRAWEE WRITTEN UNDERTAKING`,
+      `FOR AMOUNT ${currency} ${forAmount}`,
+      `WICH MATURITY ON ${maturity || 'DD.MM.YYYY'} WITHOUT ANY`,
+      `RESPONSIBILITY ON OUR PART`,
+      `BEST REGARDS`,
+      `TRADE FINANCE CENTRAL DEPARTMENT`,
+    ] : [
+      `PLS CONSIDER THIS  MESSAGE AS MT 412`,
+      `OR REF.   ${ourRef}`,
+      `YOUR REF. ${bankRef || '...'}`,
+      `ENCLOSING DOCS FOR ${currency} ${amount}`,
+      `PLS NOTE THAT DRAWEE ACCAPTED DRAFT`,
+      `FOR AMOUNT ${currency} ${forAmount}`,
+      `WICH MATURITY ON ${maturity || 'DD.MM.YYYY'} WITHOUT ANY`,
+      `RESPONSIBILITY ON OUR PART`,
+      `BEST REGARDS`,
+      `TRADE FINANCE CENTRAL DEPARTMENT`,
+    ]) : [];
+
+    if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+    preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
+  }
+
+  ['ncMt412Dot'].forEach(id => {
+    const d = document.getElementById(id);
+    if (d) d.style.background = ready ? '#2d7a4f' : '#c04020';
+  });
+  // Tab button turns green
+  const mt412btn = document.getElementById('ncSubTabMT412');
+  if (mt412btn) {
+    mt412btn.style.background = ready ? '#2d7a4f' : 'white';
+    mt412btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  }
+}
+
+function copyMt400Screen() {
+  const el = document.getElementById('mt400ScreenPreview');
+  if (el) smartCopy(el.textContent, 'MT400 copied ✓');
+}
+
+function copyMt412Screen() {
+  const el = document.getElementById('mt412ScreenPreview');
+  if (el) smartCopy(el.textContent, 'MT412 copied ✓');
+}
+
+
+
+
+function openContract(type) {
+  currentContractType = type;
+  document.getElementById('homeScreen').style.display  = 'none';
+  document.getElementById('toolScreen').style.display  = 'block';
+  document.getElementById('contractTypeBadge').textContent = type;
+
+  // Always restore mainContent and tabs bar
+  const mainContent = document.getElementById('mainContent');
+  if (mainContent) mainContent.style.display = 'block';
+  const tabsBar = document.querySelector('.tabs');
+  if (tabsBar) tabsBar.style.display = '';
+
+  // Hide all screens
+  ['mt400Screen','mt412Screen','batchScreen','ekhtarScreen','mt410Screen'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+
+  // Restore entry tab active
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-pane').forEach((p,i) => { p.style.display=''; p.classList.toggle('active', i===0); });
+
+  // Show sub-tabs only for CLSI
+  const isCLSI = type === 'CLSI';
+  document.getElementById('clsiSubTabs').style.display    = isCLSI ? 'block' : 'none';
+  document.getElementById('nonClsiSubTabs').style.display = isCLSI ? 'none'  : 'block';
+  const ekhtarBtn = document.getElementById('ekhtarBtn');
+  if (isCLSI) {
+    clsiSubTab = '';
+    ['subTab103','subTab202'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.background = 'white'; el.style.color = 'var(--dim)'; }
+    });
+    document.getElementById('subTabMT400').style.display  = 'none';
+    document.getElementById('subTabEKHTAR').style.display = 'none';
+    document.getElementById('bankRefGroup').style.display = 'none';
+    document.getElementById('mt400Panel').style.display   = 'none';
+    document.getElementById('batchScreen').style.display  = 'none';
+    
+    if (ekhtarBtn) ekhtarBtn.style.display = 'none';
+  } else {
+    // Reset non-CLSI — default to 103
+    nonClsiSubTab = '';
+    // hide all nc panels first
+    ['mt400Screen','mt412Screen','batchScreen'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    setNonClsiSubTab('103');
+    if (ekhtarBtn) ekhtarBtn.style.display = 'none';
+  }
+  const hasMat = type !== 'CLSI';
+  document.getElementById('maturityGroup').style.display = hasMat ? 'block' : 'none';
+  document.getElementById('sMaturityRow').style.display  = hasMat ? 'flex'  : 'none';
+
+  // Reset advance payment
+  advanceOn = false;
+  document.getElementById('advanceCheck').checked = false;
+  document.getElementById('advanceToggle').classList.remove('on');
+  document.getElementById('advanceStatus').textContent = 'OFF';
+  document.getElementById('mcbeSection').style.display = 'none';
+  document.getElementById('sMcbeRow').style.display = 'none';
+
+  setVal('sType', type);
+
+  // Init date badge
+  const now = new Date();
+  const dateEl = document.getElementById('dateBadge');
+  if (dateEl) {
+    dateEl.style.cssText = 'font-size:.6rem;color:var(--dim);font-family:"JetBrains Mono",monospace;text-align:right;margin-top:5px;';
+    dateEl.textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+  }
+  document.getElementById('sDate').textContent = now.toLocaleDateString('en-GB');
+  document.getElementById('dateFilter').value = now.toISOString().split('T')[0];
+  updateOpsCount();
+  loadForm();
+}
+
+function goHome() {
+  document.getElementById('toolScreen').style.display = 'none';
+  document.getElementById('homeScreen').style.display = 'flex';
+  // switch back to entry tab
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('active', i===0); });
+  document.querySelectorAll('.tab-pane').forEach((p,i)=>{ p.classList.toggle('active', i===0); });
+}
+
+function toggleSummary() {
+  const body = document.getElementById('summaryBody');
+  const icon = document.getElementById('summaryToggleIcon');
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  icon.textContent = isHidden ? '▲ hide' : '▼ show';
+}
+
+// ── Special Rate ──
+let specialRateOn = false;
+
+function toggleSpecialRate() {
+  specialRateOn = !specialRateOn;
+  document.getElementById('specialRateCheck').checked = specialRateOn;
+  document.getElementById('specialRateToggle').classList.toggle('on', specialRateOn);
+  document.getElementById('specialRateStatus').textContent = specialRateOn ? 'ON' : 'OFF';
+  document.getElementById('specialRateSection').style.display = specialRateOn ? 'block' : 'none';
+  if (specialRateOn) calcSpecialRate();
+}
+
+function calcSpecialRate() {
+  const rate      = parseFloat(document.getElementById('exchRate').value) || 0;
+  const pctInput  = document.getElementById('specialRatePct').value;
+  const pct       = pctInput !== '' ? parseFloat(pctInput) : 100;
+  const transBase = parseFloat(document.getElementById('docAmount').value) || 0;
+  const swiftCount= parseInt(document.getElementById('swiftCommCount').value) || 1;
+  const mult = pct / 100;
+
+  const fmt = v => v.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' EGP';
+
+  document.getElementById('handCommResult').value  = rate ? fmt(10 * rate * mult)              : '';
+  document.getElementById('swiftCommResult').value = rate ? fmt(35 * swiftCount * rate * mult) : '';
+  document.getElementById('form4CommResult').value =        fmt(150 * mult);
+  document.getElementById('postCommResult').value  = fmt(200 * mult);
+
+  // TRANS COMM = Amount × Rate × 3‰, min 10 USD × Rate, max 150 USD × Rate
+  const transRaw = transBase && rate ? transBase * rate * 3 / 1000 * mult : 0;
+  let transFinal = transRaw;
+  let transNote = '';
+  if (transRaw > 0 && rate) {
+    const min = 10  * rate * mult;
+    const max = 150 * rate * mult;
+    if      (transRaw < min) { transFinal = min; transNote = ' ⚠️ Min = ' + fmt(min); }
+    else if (transRaw > max) { transFinal = max; transNote = ' ⚠️ Max = ' + fmt(max); }
+  }
+  document.getElementById('transCommResult').value = transBase && rate ? fmt(transFinal) + transNote : '';
+}
+
+// ── Advance Payment toggle ──
+function toggleAdvance() {
+  advanceOn = !advanceOn;
+  document.getElementById('advanceCheck').checked = advanceOn;
+  document.getElementById('advanceToggle').classList.toggle('on', advanceOn);
+  document.getElementById('advanceStatus').textContent = advanceOn ? 'ON' : 'OFF';
+  document.getElementById('mcbeSection').style.display = advanceOn ? 'block' : 'none';
+  document.getElementById('sMcbeRow').style.display = advanceOn ? 'flex' : 'none';
+  document.getElementById('swiftCommSection').style.display = advanceOn ? 'block' : 'none';
+  document.getElementById('advTransferRow').style.display = advanceOn ? 'block' : 'none';
+  if (!advanceOn) {
+    document.getElementById('advanceAmount').value = '';
+    document.getElementById('transferDisplay').textContent = '—';
+  }
+  updateSummary();
+}
+
+function calcTransfer() {
+  const amount  = parseFloat(document.getElementById('docAmount')?.value)   || 0;
+  const advance = parseFloat(document.getElementById('advanceAmount')?.value) || 0;
+  const display = document.getElementById('transferDisplay');
+  if (!display) return;
+  if (amount > 0 && advance >= 0) {
+    const transfer = amount - advance;
+    display.textContent = transfer.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    display.style.color = transfer < 0 ? '#c04020' : '#1a5c3a';
+    display.style.borderColor = transfer < 0 ? '#c04020' : '#2d7a4f';
+    display.style.background  = transfer < 0 ? '#fff0ee' : '#e8f5ee';
+  } else {
+    display.textContent = '—';
+    display.style.color = '#1a5c3a';
+  }
+  // recalc OUR if active — because transfer base changed
+  if (ourTransferOn) calcOurTransfer();
+}
+
+let ourTransferOn = false;
+
+function toggleOurTransfer() {
+  ourTransferOn = !ourTransferOn;
+  const btn = document.getElementById('ourToggleBtn');
+  const row = document.getElementById('ourTransferRow');
+  btn.style.background   = ourTransferOn ? '#c8a020' : 'white';
+  btn.style.color        = ourTransferOn ? 'white'   : 'var(--dim)';
+  btn.style.borderColor  = ourTransferOn ? '#c8a020' : 'var(--border)';
+  row.style.display      = ourTransferOn ? 'block'   : 'none';
+  if (ourTransferOn) calcOurTransfer();
+}
+
+function getOurDeduction(base) {
+  if      (base >= 100000) return 100;
+  else if (base >= 50000)  return 80;
+  else if (base >= 25000)  return 70;
+  else if (base >= 10000)  return 60;
+  else if (base >= 5000)   return 50;
+  else if (base >= 2500)   return 50;
+  else if (base >= 1000)   return 40;
+  else if (base >= 500)    return 30;
+  else if (base >= 100)    return 20;
+  else                     return 0;
+}
+
+function calcOurTransfer() {
+  if (!ourTransferOn) return;
+  const currency   = document.getElementById('currency')?.value || '';
+  const is103      = clsiSubTab === '103' || nonClsiSubTab === '103';
+  const amount     = parseFloat(document.getElementById('docAmount')?.value)    || 0;
+  const advance    = parseFloat(document.getElementById('advanceAmount')?.value) || 0;
+  const advanceOn  = document.getElementById('advTransferRow')?.style.display !== 'none';
+  const display    = document.getElementById('ourTransferDisplay');
+  if (!display) return;
+
+  // Only USD + 103
+  if (currency !== 'USD' || !is103) {
+    display.textContent = 'USD + 103 فقط';
+    display.style.color = '#c04020';
+    return;
+  }
+
+  // Base = transfer amount if advance is ON, else full amount
+  const base      = (advanceOn && advance > 0) ? (amount - advance) : amount;
+  const deduction = getOurDeduction(base);
+
+  if (deduction === 0) {
+    display.textContent = '—';
+    display.dataset.deduction = '0';
+  } else {
+    const total = base + deduction;
+    display.textContent = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    display.dataset.deduction = deduction;
+  }
+  display.style.color = '#8a5c00';
+}
+
+// ── Tab switching ──
+function switchTab(tab, btn) {
+  // Close any open screens first
+  ['mt400Screen','mt412Screen','batchScreen','ekhtarScreen','mt410Screen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Restore tabs bar and panes visibility
+  const tabsBar = document.querySelector('.tabs');
+  if (tabsBar) tabsBar.style.display = '';
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    p.style.display = '';
+    p.classList.remove('active');
+  });
+  // Restore sub-tabs if inside a contract
+  if (currentContractType) {
+    const isCLSI = currentContractType === 'CLSI';
+    const clsiEl = document.getElementById('clsiSubTabs');
+    const ncEl   = document.getElementById('nonClsiSubTabs');
+    if (clsiEl) clsiEl.style.display = isCLSI ? 'flex' : 'none';
+    if (ncEl)   ncEl.style.display   = isCLSI ? 'none' : 'flex';
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'ops') renderOps();
+  if (tab === 'fx')  renderFxTable();
+}
+
+// ── Unit toggle ──
+function setUnit(unit) {
+  commUnit = unit;
+  document.getElementById('btnPercent').style.background  = unit === '%' ? 'var(--accent2)' : 'white';
+  document.getElementById('btnPercent').style.color       = unit === '%' ? 'white' : 'var(--dim)';
+  document.getElementById('btnPermille').style.background = unit === '‰' ? 'var(--accent2)' : 'white';
+  document.getElementById('btnPermille').style.color      = unit === '‰' ? 'white' : 'var(--dim)';
+  calcCommission();
+}
+
+function parseFlexDate(str) {
+  if (!str) return null;
+  const s = str.trim().replace(/[\.\-\\]/g, '/');
+  const parts = s.split('/');
+  if (parts.length !== 3) return null;
+  const [a, b, c] = parts.map(Number);
+  if (isNaN(a)||isNaN(b)||isNaN(c)) return null;
+  let d;
+  if (a > 1000) d = new Date(a, b-1, c);
+  else if (c > 1000) d = new Date(c, b-1, a);
+  else d = new Date(c, a-1, b);
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+function checkSwiftComm() {
+  const val = document.getElementById('swiftDate').value;
+  const box = document.getElementById('swiftCommStatus');
+  const date = parseFlexDate(val);
+  if (!date) { box.className='swift-status neutral'; box.textContent='— Enter date —'; setVal('sSwiftComm',''); return; }
+  date.setHours(0,0,0,0);
+  const cutoff = new Date(SWIFT_CUTOFF); cutoff.setHours(0,0,0,0);
+  if (date >= cutoff) {
+    box.className='swift-status comm'; box.textContent='✔ COMM';
+    const el=document.getElementById('sSwiftComm'); el.textContent='COMM'; el.className='summary-val comm-yes';
+  } else {
+    box.className='swift-status no-comm'; box.textContent='✘ NO COMM';
+    const el=document.getElementById('sSwiftComm'); el.textContent='NO COMM'; el.className='summary-val comm-no';
+  }
+}
+
+function updateMt410TabColor() {
+  const ourRef  = document.getElementById('ourRef')?.value.trim()    || '';
+  const currency= document.getElementById('currency')?.value          || '';
+  const amount  = document.getElementById('docAmount')?.value.trim() || '';
+  const ready   = !!(ourRef && currency && amount);
+  ['subTabMT410','ncSubTabMT410'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.style.background = ready ? '#2d7a4f' : 'white';
+    btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  });
+}
+
+function updateMt412TabColor() {
+  const ourRef  = document.getElementById('ourRef')?.value.trim()    || '';
+  const currency= document.getElementById('currency')?.value          || '';
+  const amount  = document.getElementById('docAmount')?.value.trim() || '';
+  const ready   = !!(ourRef && currency && amount);
+  const btn = document.getElementById('ncSubTabMT412');
+  if (btn) {
+    btn.style.background = ready ? '#2d7a4f' : 'white';
+    btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  }
+}
+
+function autoGenerate() {
+  const branch   = document.getElementById('branchNum').value.trim().toUpperCase();
+  const ticket   = document.getElementById('ticketNum').value.trim().toUpperCase();
+  const customer = document.getElementById('customerId').value.trim().toUpperCase();
+  const ourRef   = (branch&&ticket) ? `${PREFIX}${branch}${ticket}` : '';
+  document.getElementById('ourRef').value   = ourRef;
+  document.getElementById('form4Ref').value = (branch&&ticket&&customer) ? `${PREFIX}${branch}${ticket}-${customer}` : '';
+  // Pre-populate batchScreen fields (screen reads these when opened)
+  const docAmt = parseFloat(document.getElementById('docAmount').value) || 0;
+  const exRate = parseFloat(document.getElementById('exchRate').value)  || 0;
+  const fmt    = v => v.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const bs1TFC = document.getElementById('bsRow1TFC');
+  const bs2TFC = document.getElementById('bsRow2TFC');
+  if (bs1TFC) bs1TFC.value = ourRef;
+  if (bs2TFC) bs2TFC.value = ourRef;
+  const bs1Amt  = document.getElementById('bsRow1Amount');
+  const bs2Amt  = document.getElementById('bsRow2Amount');
+  const bs1Rate = document.getElementById('bsRow1Rate');
+  const bs2Rate = document.getElementById('bsRow2Rate');
+  if (bs1Amt)  bs1Amt.value  = docAmt && exRate ? fmt(docAmt * exRate) : '';
+  if (bs2Amt)  bs2Amt.value  = docAmt           ? fmt(docAmt)          : '';
+  if (bs1Rate) bs1Rate.value = '1';
+  if (bs2Rate) bs2Rate.value = exRate ? exRate : '';
+  calcBsLCY(1); calcBsLCY(2);
+  updateSummary();
+  updateMt410TabColor();
+  updateMt412TabColor();
+}
+
+function calcCommission() {
+  const amount  = parseFloat(document.getElementById('docAmount').value) || 0;
+  const rate    = parseFloat(document.getElementById('exchRate').value)  || 0;
+  const commVal = parseFloat(document.getElementById('commRate').value)  || 0;
+  const currency= document.getElementById('currency').value || '?';
+  const formula = document.getElementById('formulaDisplay');
+  const result  = document.getElementById('commResult');
+  const actualPct = commUnit === '‰' ? commVal/10 : commVal;
+  if (amount && rate && commVal) {
+    const comm = amount * rate * actualPct / 100;
+    const minChargeEGP = 80 * rate;
+    const finalComm = Math.max(comm, minChargeEGP);
+    const isMin = finalComm > comm;
+    const unitLabel = commUnit==='‰' ? `${commVal}‰ (=${actualPct}%)` : `${commVal}%`;
+    result.value = finalComm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' EGP'+(isMin?'  ⚠️ Min. Charge':'');
+    if (isMin) {
+      formula.innerHTML = `${amount.toLocaleString()} ${currency} × ${rate} × ${unitLabel} ÷ 100 = ${comm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})} EGP<br><strong style="color:var(--accent)">⚠️ Min. Charge Applied: ${finalComm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})} EGP (80 USD)</strong>`;
+    } else {
+      formula.innerHTML = `${amount.toLocaleString()} ${currency} × ${rate} × ${unitLabel}<br>÷ 100 = <strong style="color:var(--accent)">${finalComm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})} EGP</strong>`;
+    }
+    setVal('sComm', finalComm.toLocaleString('en-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' EGP'+(isMin?' ⚠️ Min.':''), true);
+    setVal('sCommRate', commVal+commUnit);
+  } else {
+    result.value='';
+    formula.innerHTML='Amount × Exch. Rate × Comm<br>÷ 100 = <strong>EGP</strong>';
+    setVal('sComm','',false);
+    setVal('sCommRate', commVal ? commVal+commUnit : '');
+  }
+  updateSummary();
+}
+
+function updateSummary() {
+  const branch   = document.getElementById('branchNum').value.trim().toUpperCase();
+  const ticket   = document.getElementById('ticketNum').value.trim().toUpperCase();
+  const customer = document.getElementById('customerId').value.trim().toUpperCase();
+  const currency = document.getElementById('currency').value;
+  const amount   = document.getElementById('docAmount').value;
+  const rate     = document.getElementById('exchRate').value;
+  const ourRef   = document.getElementById('ourRef').value;
+  const form4Ref = document.getElementById('form4Ref').value;
+  const contract = document.getElementById('contractNum').value.trim();
+  const maturity = document.getElementById('maturityDate').value.trim();
+
+  document.getElementById('summaryContract').innerHTML = contract ? contract : '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryOurRef').innerHTML   = ourRef   ? ourRef   : '<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryForm4Ref').innerHTML = form4Ref ? form4Ref : '<span class="ref-empty">pending…</span>';
+
+  setVal('sBranch',   branch);
+  setVal('sTicket',   ticket);
+  setVal('sCustomer', customer);
+  setVal('sBankRef',  document.getElementById('bankRef').value.trim());
+  if (advanceOn) setVal('sMcbe', getAllMcbe());
+  setVal('sCurrency', currency);
+  setVal('sAmount',   amount ? `${parseFloat(amount).toLocaleString()} ${currency||''}` : '');
+  setVal('sRate',     rate   ? `${parseFloat(rate).toLocaleString()} EGP` : '');
+  if (currentContractType !== 'CLSI') setVal('sMaturity', maturity || '—');
+  updateSwiftPreview();
+  saveForm();
+}
+
+function setVal(id, val, highlight) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val) { el.textContent=val; el.classList.remove('empty'); if(highlight) el.classList.add('highlight'); }
+  else     { el.textContent='—'; el.classList.add('empty'); el.classList.remove('highlight'); }
+}
+
+function copyField(fieldId, btn) {
+  const val = document.getElementById(fieldId).value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => {
+    btn.classList.add('copied'); btn.textContent='✓ Copied!';
+    setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent='⎘'; },2000);
+  });
+}
+
+function getAllMcbe() {
+  const vals = [];
+  document.querySelectorAll('#mcbeContainer input').forEach(el => { if(el.value.trim()) vals.push(el.value.trim()); });
+  return vals.join(' / ');
+}
+
+function getAllMcbeList() {
+  const vals = [];
+  document.querySelectorAll('#mcbeContainer input').forEach(el => { if(el.value.trim()) vals.push(el.value.trim()); });
+  return vals.length ? vals : [''];
+}
+
+function copyAll() {
+  const g   = id => document.getElementById(id)?.value?.trim() || '—';
+  const now = new Date();
+  const today = now.toLocaleDateString('en-GB');
+  const time  = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const swiftStatus = document.getElementById('swiftCommStatus').textContent.replace(/[✔✘]/g,'').trim();
+  const contract  = g('contractNum');
+  const ourRef    = g('ourRef');
+  const form4Ref  = document.getElementById('form4Ref').value || '—';
+  const maturity  = currentContractType !== 'CLSI' ? document.getElementById('maturityDate').value.trim() : null;
+  const mcbeVal   = advanceOn ? getAllMcbe() : null;
+  const cur       = document.getElementById('currency').value || '—';
+  const is103     = clsiSubTab === '103' || nonClsiSubTab === '103';
+  const isADV     = clsiSubTab === 'ADV';
+
+  // ── ADVANCE PAYMENT special copy ──
+  if (isADV) {
+    const mcbes = getAllMcbeList().filter(m => m);
+    const amtRaw = g('docAmount');
+    const commStatus = swiftStatus && swiftStatus !== '—' ? swiftStatus : '';
+    const mcbeLine = mcbes.length ? mcbes.join('  |  ') : '—';
+    const lines = [];
+    lines.push(`CONTRACT N. : ${contract}`);
+    lines.push(`FORM 4 N.   : ${form4Ref}`);
+    lines.push(`MCBE N.     : ${mcbeLine}    ${commStatus}`);
+    lines.push(`Amount      : ${amtRaw} ${cur}`);
+    lines.push(``);
+    const text = lines.join('\n').trim();
+    operations.unshift({
+      id:Date.now(), time:`${today} ${time}`, date:today,
+      contract, ourRef, form4Ref, contractType:'ADVANCE PAYMENT',
+      branch:g('branchNum').toUpperCase(), ticket:g('ticketNum').toUpperCase(),
+      customer:g('customerId').toUpperCase(), bankRef:g('bankRef'),
+      mcbe:mcbeVal||'', currency:cur, amount:g('docAmount'),
+      swiftComm:swiftStatus||'—', maturity:'', fullText:text
+    });
+    updateActiveFxRow();
+    saveOps(); updateOpsCount();
+    try {
+      navigator.clipboard.writeText(text)
+        .then(()=>showToast('Copied & logged ✓'))
+        .catch(()=>showToast('Logged ✓'));
+    } catch(e){ showToast('Logged ✓'); }
+    return;
+  }
+
+  const lines = [];
+
+  // ── Amount line with OUR deduction inline ──
+  const amtRaw = g('docAmount');
+  let amtLine  = `Doc. Amount : ${amtRaw} ${cur}`;
+  if (ourTransferOn && is103 && cur === 'USD') {
+    const el  = document.getElementById('ourTransferDisplay');
+    const ded = parseInt(el?.dataset.deduction || '0');
+    if (ded > 0) amtLine += ` (+${ded} OUR)`;
+  }
+
+  lines.push(`Currency    : ${cur}`);
+  lines.push(amtLine);
+  lines.push(`Type        : ${currentContractType}`);
+  lines.push(`CONTRACT    - ${contract}`);
+  lines.push(`OUR REF     - ${ourRef}`);
+  lines.push(`FORM 4 REF  - ${form4Ref}`);
+  lines.push(``);
+
+  // ── SIEBEL / MAIN RATE (103 only) ──
+  if (is103) {
+    const siebelActive = document.getElementById('siebelRateRow')?.style.display !== 'none';
+    const siebelRateVal = g('siebelRate');
+    const siebelNumVal  = g('siebelNum');
+    const mainRateVal   = g('exchRate');
+    const batchNumVal   = g('batchNumber');
+    const tboNumVal     = g('tboNum');
+
+    if (siebelActive && siebelRateVal !== '—') {
+      let sLine = `SIEBEL RATE : ${siebelRateVal}`;
+      if (siebelNumVal !== '—') sLine += `  |  SIEBEL N. : ${siebelNumVal}`;
+      lines.push(sLine);
+    } else {
+      lines.push(`MAIN RATE   : ${mainRateVal}`);
+    }
+    if (batchNumVal !== '—') lines.push(`BATCH N.    : ${batchNumVal}`);
+    if (tboNumVal   !== '—') lines.push(`TBO N.      : ${tboNumVal}`);
+    lines.push(``);
+  }
+
+  // ── MCBE + ADVANCE (if ON) ──
+  if (mcbeVal) lines.push(`MCBE N.     : ${mcbeVal}`);
+  if (advanceOn) {
+    const adv = g('advanceAmount');
+    if (adv !== '—') lines.push(`ADVANCE     : ${adv} ${cur}`);
+  }
+
+  // ── OUR TRANSFER (if ON) ──
+  if (ourTransferOn && is103 && cur === 'USD') {
+    const el  = document.getElementById('ourTransferDisplay');
+    const val = el?.textContent || '—';
+    const ded = parseInt(el?.dataset.deduction || '0');
+    if (val !== '—' && val !== 'USD + 103 فقط' && ded > 0)
+      lines.push(`OUR TRANSFER: ${val} USD`);
+  }
+
+  // ── Maturity ──
+  if (maturity) lines.push(`Maturity    : ${maturity}`);
+
+  // ── COMM ──
+  if (swiftStatus && swiftStatus !== '—') lines.push(`${swiftStatus}`);
+
+  const text = lines.join('\n');
+
+  operations.unshift({
+    id:Date.now(), time:`${today} ${time}`, date:today,
+    contract, ourRef, form4Ref, contractType: currentContractType,
+    branch:g('branchNum').toUpperCase(), ticket:g('ticketNum').toUpperCase(),
+    customer:g('customerId').toUpperCase(), bankRef:g('bankRef'),
+    mcbe: mcbeVal||'', currency:cur, amount:g('docAmount'),
+    swiftComm:swiftStatus||'—', maturity:maturity||'', fullText:text
+  });
+  updateActiveFxRow();
+  saveOps(); updateOpsCount();
+  try {
+    navigator.clipboard.writeText(text)
+      .then(()=>showToast('Copied & logged ✓'))
+      .catch(()=>showToast('Logged ✓'));
+  } catch(e){ showToast('Logged ✓'); }
+}
+
+function deleteOp(id) {
+  if (!confirm('هتشيل العملية دي؟')) return;
+  operations = operations.filter(o => o.id !== id);
+  saveOps(); updateOpsCount(); renderOps();
+}
+
+function toggleStatus(id) {
+  const op = operations.find(o=>o.id===id);
+  if (!op) return;
+  op.statusDone = !op.statusDone;
+  saveOps();
+  renderOps();
+}
+
+function renderOps() {
+  const container  = document.getElementById('opsContainer');
+  const dateFilter = document.getElementById('dateFilter').value;
+  const today      = new Date().toLocaleDateString('en-GB');
+  let filtered = operations.filter(o => !o.onHold);
+  if (dateFilter) { const fd = new Date(dateFilter).toLocaleDateString('en-GB'); filtered = filtered.filter(op=>op.date===fd); }
+  document.getElementById('statTotal').textContent = operations.filter(o=>!o.onHold).length;
+  document.getElementById('statToday').textContent = operations.filter(op=>op.date===today && !op.onHold).length;
+
+  renderHold();
+
+  if (!filtered.length) {
+    container.innerHTML=`<div class="ops-empty"><div class="ops-empty-icon">📭</div>${dateFilter?'No operations on this date.':'No operations yet.<br>Fill in Data Entry and click <strong>Copy Full Entry</strong> to log.'}</div>`;
+    return;
+  }
+
+  // Group by contract type
+  const types = ['ADVANCE PAYMENT','CLSI','CLUD','CLUW','CLUG'];
+  let html = '';
+
+  types.forEach(type => {
+    const group = filtered.filter(op => (op.contractType||'') === type);
+    if (!group.length) return;
+
+    const statusLabel = type === 'CLSI' ? 'LIQUID' : type === 'ADVANCE PAYMENT' ? 'DONE' : 'FINAL';
+
+    const rows = group.map((op, i) => {
+      const isDone = op.statusDone === true;
+      const dotStyle = isDone
+        ? 'background:#2d7a4f;border-color:#2d7a4f;color:white;'
+        : 'background:#c04020;border-color:#c04020;color:white;';
+      return `
+      <tr>
+        <td><span class="ops-row-num">${group.length - i}</span></td>
+        <td style="font-size:.68rem;">${op.time}</td>
+        <td class="contract-col">${op.contract}</td>
+        <td class="ref-col">${op.ourRef}</td>
+        <td class="ref-col" style="color:var(--gold)">${op.form4Ref}</td>
+        <td>${op.ticket}</td>
+        <td>${op.amount} ${op.currency}</td>
+        <td style="color:${op.swiftComm==='COMM'?'var(--green)':'#c04020'};font-weight:700;">${op.swiftComm}</td>
+        <td>
+          <button onclick="toggleStatus(${op.id})" title="Toggle ${statusLabel}" style="padding:2px 8px;border-radius:10px;border:1.5px solid;font-size:.55rem;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .2s;${dotStyle}">${statusLabel}</button>
+        </td>
+        <td>
+          <button class="ops-copy-row" onclick="copyOpRow(${op.id})" style="background:rgba(26,74,110,.12);border-color:rgba(26,74,110,.3);color:var(--main);font-weight:800;padding:3px 10px;">⎘ Copy</button>
+          <button class="ops-copy-row" onclick="editOp(${op.id})" style="background:rgba(184,134,11,.1);border-color:rgba(184,134,11,.3);color:var(--gold);">✏️</button>
+          <button class="ops-copy-row" onclick="openHoldModal(${op.id})" style="background:rgba(138,58,0,.1);border-color:rgba(200,96,26,.4);color:#8a3a00;font-weight:800;">⏸</button>
+          <button class="ops-del-row"  onclick="deleteOp(${op.id})">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    html += `
+      <div style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--dark);border-radius:4px 4px 0 0;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;color:white;letter-spacing:2px;">${type}</span>
+          <span style="font-size:.58rem;color:rgba(255,255,255,.4);letter-spacing:1px;">${group.length} operation${group.length>1?'s':''}</span>
+        </div>
+        <div style="overflow-x:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;">
+          <table class="ops-table">
+            <thead><tr>
+              <th>#</th><th>Time</th><th>Contract</th><th>OUR REF</th><th>FORM 4</th>
+              <th>Ticket</th><th>Amount</th><th>Swift</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  });
+
+  // Any unknown type
+  const unknown = filtered.filter(op => !types.includes(op.contractType||''));
+  if (unknown.length) {
+    const rows = unknown.map((op,i)=>`
+      <tr>
+        <td><span class="ops-row-num">${unknown.length-i}</span></td>
+        <td style="font-size:.68rem;">${op.time}</td>
+        <td class="contract-col">${op.contract}</td>
+        <td class="ref-col">${op.ourRef}</td>
+        <td>${op.ticket}</td>
+        <td>${op.amount} ${op.currency}</td>
+        <td>
+          <button class="ops-copy-row" onclick="copyOpRow(${op.id})">⎘ Copy</button>
+          <button class="ops-del-row"  onclick="deleteOp(${op.id})">✕</button>
+        </td>
+      </tr>`).join('');
+    html += `<div style="margin-bottom:18px;"><div style="padding:7px 14px;background:var(--dim);border-radius:4px 4px 0 0;"><span style="font-size:.75rem;font-weight:800;color:white;">Other</span></div><div style="overflow-x:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;"><table class="ops-table"><thead><tr><th>#</th><th>Time</th><th>Contract</th><th>OUR REF</th><th>Ticket</th><th>Amount</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+let editingOpId = null;
+
+function editOp(id) {
+  const op = operations.find(o=>o.id===id);
+  if (!op) return;
+  editingOpId = id;
+  document.getElementById('editContract').value = op.contract || '';
+  document.getElementById('editOurRef').value   = op.ourRef   || '';
+  document.getElementById('editForm4Ref').value = op.form4Ref || '';
+  document.getElementById('editTicket').value   = op.ticket   || '';
+  document.getElementById('editBranch').value   = op.branch   || '';
+  document.getElementById('editCustomer').value = op.customer || '';
+  document.getElementById('editBankRef').value  = op.bankRef  || '';
+  document.getElementById('editMcbe').value     = op.mcbe     || '';
+  document.getElementById('editAmount').value   = op.amount   || '';
+  document.getElementById('editMaturity').value = op.maturity || '';
+  const modal = document.getElementById('editModal');
+  modal.style.display = 'flex';
+}
+
+function saveEdit() {
+  const op = operations.find(o=>o.id===editingOpId);
+  if (!op) return;
+  op.contract = document.getElementById('editContract').value.trim();
+  op.ourRef   = document.getElementById('editOurRef').value.trim();
+  op.form4Ref = document.getElementById('editForm4Ref').value.trim();
+  op.ticket   = document.getElementById('editTicket').value.trim();
+  op.branch   = document.getElementById('editBranch').value.trim();
+  op.customer = document.getElementById('editCustomer').value.trim();
+  op.bankRef  = document.getElementById('editBankRef').value.trim();
+  op.mcbe     = document.getElementById('editMcbe').value.trim();
+  op.amount   = document.getElementById('editAmount').value.trim();
+  op.maturity = document.getElementById('editMaturity').value.trim();
+  // rebuild fullText
+  const lines = [
+    `Type        : ${op.contractType||''}`,
+    `CONTRACT    - ${op.contract}`,
+    `OUR REF     - ${op.ourRef}`,
+    `FORM 4 REF  - ${op.form4Ref}`,
+    ``,
+    `Ticket No.  : ${op.ticket}`,
+    `Bank Ref    : ${op.bankRef}`,
+  ];
+  if (op.mcbe) lines.push(`MCBE        : ${op.mcbe}`);
+  lines.push(`Currency    : ${op.currency}`);
+  lines.push(`Doc. Amount : ${op.amount} ${op.currency}`);
+  if (op.maturity) lines.push(`Maturity    : ${op.maturity}`);
+  if (op.swiftComm && op.swiftComm !== '—') lines.push(`Swift Comm  : ${op.swiftComm}`);
+  op.fullText = lines.join('\n');
+  saveOps();
+  closeEditModal();
+  renderOps();
+  showToast('Operation updated ✓');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+  editingOpId = null;
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function smartCopy(text, successMsg) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(()=>showToast(successMsg)).catch(()=>{ fallbackCopyText(text); showToast(successMsg); });
+  } else {
+    fallbackCopyText(text);
+    showToast(successMsg);
+  }
+}
+
+function copyOpRow(id) {
+  const op = operations.find(o=>o.id===id);
+  if (!op) return;
+  const batchNum = document.getElementById('bBatchNum')?.value?.trim() || '';
+  const lines = op.fullText.split('\n');
+  if (batchNum) lines.push(`BATCH NUM   - ${batchNum}`);
+  smartCopy(lines.join('\n'), 'Operation copied ✓');
+}
+
+function copyAllOps() {
+  if (!operations.length) { showToast('No operations to copy'); return; }
+  const batchNum = document.getElementById('bBatchNum')?.value?.trim() || '';
+  const text = operations.slice().reverse().map((op,i)=>[
+    `[${i+1}] ${op.time}`,
+    `Ticket No.  - ${op.ticket}`,
+    `Branch No.  - ${op.branch}`,
+    `Doc. Amount - ${op.amount}`,
+    `Currency    - ${op.currency}`,
+    `CONTRACT    - ${op.contract}`,
+    `OUR REF     - ${op.ourRef}`,
+    `FORM 4 REF  - ${op.form4Ref}`,
+    op.mcbe   ? `MCBE        - ${op.mcbe}` : null,
+    batchNum  ? `BATCH NUM   - ${batchNum}` : null,
+    ``
+  ].filter(x=>x!==null).join('\n')).join('\n');
+  smartCopy(text, `${operations.length} operations copied ✓`);
+}
+
+// ── HOLD ──
+let holdingOpId = null;
+
+function openHoldModal(id) {
+  holdingOpId = id;
+  document.getElementById('holdReason').value = '';
+  const modal = document.getElementById('holdModal');
+  modal.style.display = 'flex';
+  setTimeout(()=>document.getElementById('holdReason').focus(), 50);
+}
+
+function closeHoldModal() {
+  document.getElementById('holdModal').style.display = 'none';
+  holdingOpId = null;
+}
+
+function confirmHold() {
+  if (!holdingOpId) return;
+  const reason = document.getElementById('holdReason').value.trim();
+  if (!reason) { document.getElementById('holdReason').style.borderColor='#c04020'; return; }
+  const op = operations.find(o => o.id === holdingOpId);
+  if (op) { op.onHold = true; op.holdReason = reason; }
+  closeHoldModal();
+  saveOps(); renderOps(); renderHold();
+}
+
+function releaseHold(id) {
+  const op = operations.find(o => o.id === id);
+  if (op) { op.onHold = false; op.holdReason = ''; }
+  saveOps(); renderOps(); renderHold();
+  showToast('تم رفع الـ HOLD ✓');
+}
+
+function resumeHold(id) {
+  const op = operations.find(o => o.id === id);
+  if (!op) return;
+  // Release from hold first
+  op.onHold = false; op.holdReason = '';
+  saveOps(); renderOps(); renderHold();
+  // Switch to correct contract type
+  if (op.contractType) openContract(op.contractType);
+  // Restore fields
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el && val) el.value = val; };
+  set('branchNum',  op.branch);
+  set('ticketNum',  op.ticket);
+  set('customerId', op.customer);
+  set('contractNum',op.contract);
+  set('bankRef',    op.bankRef);
+  set('docAmount',  op.amount);
+  set('maturityDate', op.maturity);
+  set('currency',   op.currency);
+  // Switch to data entry tab
+  const entryBtn = document.querySelector('.tab-btn[onclick*="entry"]');
+  if (entryBtn) switchTab('entry', entryBtn);
+  // Trigger recalculations
+  autoGenerate();
+  calcCommission();
+  showToast('تم استئناف العملية ✓');
+}
+
+function renderHold() {
+  const held = operations.filter(o => o.onHold);
+  const container = document.getElementById('holdContainer');
+  const list      = document.getElementById('holdList');
+  const countEl   = document.getElementById('holdCount');
+  if (!held.length) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  countEl.textContent = `${held.length} operation${held.length>1?'s':''}`;
+  list.innerHTML = `
+    <table class="ops-table" style="width:100%;">
+      <thead><tr>
+        <th>#</th><th>Time</th><th>Contract</th><th>OUR REF</th><th>Amount</th><th style="color:#c8601a;">HOLD REASON</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        ${held.map((op,i)=>`
+        <tr style="background:#fff8f0;">
+          <td><span class="ops-row-num">${i+1}</span></td>
+          <td style="font-size:.68rem;">${op.time}</td>
+          <td class="contract-col">${op.contract}</td>
+          <td class="ref-col">${op.ourRef}</td>
+          <td>${op.amount} ${op.currency}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#8a3a00;font-weight:700;">${op.holdReason||''}</td>
+          <td>
+            <button class="ops-copy-row" onclick="resumeHold(${op.id})" style="background:rgba(26,74,110,.12);border-color:rgba(26,74,110,.3);color:var(--main);font-weight:800;">▶ Resume</button>
+            <button class="ops-copy-row" onclick="releaseHold(${op.id})" style="background:rgba(45,122,79,.12);border-color:rgba(45,122,79,.3);color:#1a5c3a;font-weight:800;">✓ Release</button>
+            <button class="ops-del-row" onclick="deleteOp(${op.id})">✕</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ══ DAILY FX ══
+const FX_KEY = 'dailyFxRows_v1';
+
+function loadFx() {
+  try { const s = localStorage.getItem(FX_KEY); if(s) fxRows = JSON.parse(s); } catch(e){ fxRows=[]; }
+}
+
+function saveFx() {
+  try { localStorage.setItem(FX_KEY, JSON.stringify(fxRows)); } catch(e){}
+}
+
+function fxClearAll() {
+  // Get unique dates
+  const dates = [...new Set(fxRows.map(r => r.date || new Date().toLocaleDateString('en-GB')))];
+  if (!dates.length) return;
+  const today = new Date().toLocaleDateString('en-GB');
+
+  const list = document.getElementById('fxClearDateList');
+  list.innerHTML = `
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0f5fa;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:800;color:#1a3a6e;">
+      <input type="checkbox" id="fxClearSelectAll" onchange="fxToggleSelectAll(this.checked)" style="cursor:pointer;"/>
+      SELECT ALL
+    </label>
+    <hr style="border:none;border-top:1px solid #e8edf5;margin:4px 0;">
+    ${dates.map(d => `
+      <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;border-radius:3px;">
+        <input type="checkbox" class="fx-date-cb" value="${d}" style="cursor:pointer;"/>
+        <span style="color:${d===today?'#c8601a':'#1a1a18'};font-weight:${d===today?'800':'400'};">${d===today?'● TODAY — ':''} ${d}</span>
+        <span style="margin-left:auto;color:var(--dim);font-size:.6rem;">${fxRows.filter(r=>(r.date||today)===d).length} موافقة</span>
+      </label>`).join('')}`;
+
+  document.getElementById('fxClearModal').style.display = 'flex';
+}
+
+function fxToggleSelectAll(checked) {
+  document.querySelectorAll('.fx-date-cb').forEach(cb => cb.checked = checked);
+}
+
+function closeFxClearModal() {
+  document.getElementById('fxClearModal').style.display = 'none';
+}
+
+function confirmFxClear() {
+  const selected = [...document.querySelectorAll('.fx-date-cb:checked')].map(cb => cb.value);
+  if (!selected.length) { closeFxClearModal(); return; }
+  const today = new Date().toLocaleDateString('en-GB');
+  fxRows = fxRows.filter(r => !selected.includes(r.date || today));
+  saveFx(); renderFxTable(); closeFxClearModal();
+  showToast(`تم حذف ${selected.length} يوم ✓`);
+}
+
+function fxAddRow() {
+  const today = new Date().toLocaleDateString('en-GB');
+  fxRows.push({
+    id: Date.now() + Math.random(),
+    date: today,
+    batch:'', name:'', type:'', yesno:'', ccy:'', amount:'', client:'', ourRef:'',
+    contract:'', rate:'', rateType:'', closed:false, started:false
+  });
+  saveFx(); renderFxTable();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#fxTableBody tr:last-child input');
+    if (inputs[0]) inputs[0].focus();
+  }, 50);
+}
+
+function fxDeleteRow(id) {
+  fxRows = fxRows.filter(r => r.id !== id);
+  saveFx(); renderFxTable();
+}
+
+function fxToggleClosed(id) {
+  const r = fxRows.find(r => r.id === id);
+  if (r) r.closed = !r.closed;
+  saveFx(); renderFxTable();
+}
+
+function fxStart(id) {
+  fxRows.forEach(r => r.started = false);
+  const r = fxRows.find(r => r.id === id);
+  if (r) { r.started = true; r.closed = false; }
+  fxActiveId = id;
+  saveFx(); renderFxTable();
+  showToast('▶ START — اشتغل على الموافقة دي ✓');
+}
+
+function fxUpdateField(id, field, val) {
+  const r = fxRows.find(r => r.id === id);
+  if (r) { r[field] = val; saveFx(); }
+}
+
+const FX_CCY = ['USD','EUR','GBP','JPY','CHF','CAD','AED'];
+
+function renderFxTable() {
+  const tbody = document.getElementById('fxTableBody');
+  if (!tbody) return;
+
+  const F = '.72rem';
+  const inp = (field, val, id, placeholder='') =>
+    `<input value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${placeholder}"
+      oninput="fxUpdateField(${id},'${field}',this.value)"
+      style="width:100%;border:none;border-bottom:1px solid #e0e0e0;outline:none;background:transparent;font-family:'JetBrains Mono',monospace;font-size:${F};padding:2px 3px;color:#1a1a18;"/>`;
+
+  const ccySel = (val, id) => `<select onchange="fxUpdateField(${id},'ccy',this.value)"
+    style="border:none;border-bottom:1px solid #e0e0e0;outline:none;background:transparent;font-family:'JetBrains Mono',monospace;font-size:${F};font-weight:800;color:${val==='EUR'?'#c8601a':val==='USD'?'#1a5c3a':'#1a3a6e'};cursor:pointer;width:100%;">
+    <option value=""></option>
+    ${FX_CCY.map(c=>`<option value="${c}" ${c===val?'selected':''}>${c}</option>`).join('')}
+  </select>`;
+
+  const P = 'padding:3px 5px;';
+
+  if (!fxRows.length) {
+    tbody.innerHTML = `<tr><td colspan="13" style="padding:24px;text-align:center;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.65rem;">اضغط + موافقة لتضيف موافقة جديدة</td></tr>`;
+    return;
+  }
+
+  // Group by date
+  const today = new Date().toLocaleDateString('en-GB');
+  const groups = {};
+  fxRows.forEach(r => {
+    const d = r.date || today;
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(r);
+  });
+
+  // Sort dates newest first
+  const sortedDates = Object.keys(groups).sort((a,b) => {
+    const pa = a.split('/').reverse().join('');
+    const pb = b.split('/').reverse().join('');
+    return pb.localeCompare(pa);
+  });
+
+  let html = '';
+  sortedDates.forEach(date => {
+    const group = groups[date];
+    const isToday = date === today;
+    const total = group.length;
+    const closed = group.filter(r=>r.closed).length;
+
+    // Date header row
+    html += `<tr style="background:#1a3a6e;">
+      <td colspan="13" style="padding:5px 10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:800;color:white;letter-spacing:1.5px;">${isToday?'● TODAY — ':''} ${date}</span>
+          <span style="font-size:.55rem;color:rgba(255,255,255,.5);">${closed}/${total} closed</span>
+        </div>
+      </td>
+    </tr>`;
+
+    group.forEach((r, i) => {
+      const rowBg = r.closed ? '#f0fff4' : r.started ? '#fffbea' : (i%2===0?'white':'#f8f9fc');
+      const statusBtn = r.closed
+        ? `<button onclick="fxToggleClosed(${r.id})" style="padding:2px 7px;font-size:.55rem;font-weight:800;border:1px solid #2d7a4f;border-radius:8px;background:#2d7a4f;color:white;cursor:pointer;white-space:nowrap;">✓ CLOSED</button>`
+        : `<button onclick="fxToggleClosed(${r.id})" style="padding:2px 7px;font-size:.55rem;font-weight:800;border:1px solid #c04020;border-radius:8px;background:#c04020;color:white;cursor:pointer;white-space:nowrap;">● OPEN</button>`;
+      const startBtn = r.started
+        ? `<button style="padding:2px 7px;font-size:.55rem;font-weight:800;border:1px solid #c8a020;border-radius:8px;background:#c8a020;color:white;white-space:nowrap;cursor:default;">▶ STARTED</button>`
+        : `<button onclick="fxStart(${r.id})" style="padding:2px 7px;font-size:.55rem;font-weight:800;border:1px solid #1a3a6e;border-radius:8px;background:white;color:#1a3a6e;cursor:pointer;white-space:nowrap;">▶ START</button>`;
+
+      const contractCell = r.contract
+        ? `<span style="color:#1a3a6e;font-weight:800;font-size:${F};font-family:'JetBrains Mono',monospace;white-space:nowrap;">${r.contract}</span>`
+        : `<span style="color:var(--dim);">—</span>`;
+      const rateCell = r.rate
+        ? `<span style="white-space:nowrap;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:${F};color:${r.rateType==='SIEBEL'?'#c8601a':'#1a5c3a'};">${r.rateType==='SIEBEL'?'<span style="font-size:.5rem;margin-right:2px;">SIEBEL</span>':''}${r.rate}</span>`
+        : `<span style="color:var(--dim);">—</span>`;
+
+      html += `<tr style="background:${rowBg};border-bottom:1px solid #e8edf5;">
+        <td style="${P}text-align:center;color:var(--dim);font-size:.58rem;">${i+1}</td>
+        <td style="${P}min-width:80px;">${inp('batch',r.batch,r.id,'BATCH 4')}</td>
+        <td style="${P}min-width:80px;">${inp('name',r.name,r.id,'name')}</td>
+        <td style="${P}min-width:60px;">${inp('type',r.type,r.id,'أجل')}</td>
+        <td style="${P}min-width:45px;text-align:center;">${inp('yesno',r.yesno,r.id,'لا')}</td>
+        <td style="${P}min-width:60px;">${ccySel(r.ccy,r.id)}</td>
+        <td style="${P}min-width:100px;text-align:right;">${inp('amount',r.amount,r.id,'0.00')}</td>
+        <td style="${P}min-width:160px;">${inp('client',r.client,r.id,'اسم العميل')}</td>
+        <td style="${P}min-width:150px;">${inp('ourRef',r.ourRef,r.id,'2026-XXX-XXXXX')}</td>
+        <td style="${P}text-align:center;white-space:nowrap;min-width:140px;">${contractCell}</td>
+        <td style="${P}text-align:center;white-space:nowrap;min-width:90px;">${rateCell}</td>
+        <td style="${P}text-align:center;white-space:nowrap;"><div style="display:flex;flex-direction:column;gap:3px;align-items:center;">${statusBtn}${startBtn}</div></td>
+        <td style="${P}text-align:center;">
+          <button onclick="fxDeleteRow(${r.id})" style="padding:1px 5px;font-size:.55rem;border:1px solid rgba(139,32,32,.3);border-radius:2px;background:rgba(139,32,32,.08);color:#8b2020;cursor:pointer;">✕</button>
+        </td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+function updateActiveFxRow() {
+  if (!fxActiveId) return;
+  const r = fxRows.find(r => r.id === fxActiveId);
+  if (!r) return;
+  r.contract = document.getElementById('contractNum')?.value.trim() || '';
+  const siebelActive = document.getElementById('siebelRateRow')?.style.display !== 'none';
+  const siebelRate   = document.getElementById('siebelRate')?.value.trim();
+  const mainRate     = document.getElementById('exchRate')?.value.trim();
+  if (siebelActive && siebelRate) { r.rate = siebelRate; r.rateType = 'SIEBEL'; }
+  else { r.rate = mainRate; r.rateType = 'MAIN'; }
+  r.started = false;
+  fxActiveId = null;
+  saveFx();
+}
+
+function saveOps() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(operations)); } catch(e){} }
+
+function clearAllOps() {
+  if (!operations.length) return;
+  const today = new Date().toLocaleDateString('en-GB');
+  const dates = [...new Set(operations.map(o => o.date || today))].sort((a,b)=>{
+    const pa = a.split('/').reverse().join('');
+    const pb = b.split('/').reverse().join('');
+    return pb.localeCompare(pa);
+  });
+
+  const list = document.getElementById('opsClearDateList');
+  list.innerHTML = `
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0f5fa;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:800;color:#1a3a6e;">
+      <input type="checkbox" id="opsClearSelectAll" onchange="opsToggleSelectAll(this.checked)" style="cursor:pointer;"/>
+      SELECT ALL
+    </label>
+    <hr style="border:none;border-top:1px solid #e8edf5;margin:4px 0;">
+    ${dates.map(d => `
+      <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;border-radius:3px;">
+        <input type="checkbox" class="ops-date-cb" value="${d}" style="cursor:pointer;"/>
+        <span style="color:${d===today?'#c8601a':'#1a1a18'};font-weight:${d===today?'800':'400'};">${d===today?'● TODAY — ':''} ${d}</span>
+        <span style="margin-left:auto;color:var(--dim);font-size:.6rem;">${operations.filter(o=>(o.date||today)===d).length} عملية</span>
+      </label>`).join('')}`;
+
+  document.getElementById('opsClearModal').style.display = 'flex';
+}
+
+function opsToggleSelectAll(checked) {
+  document.querySelectorAll('.ops-date-cb').forEach(cb => cb.checked = checked);
+}
+
+function closeOpsClearModal() {
+  document.getElementById('opsClearModal').style.display = 'none';
+}
+
+function confirmOpsClear() {
+  const selected = [...document.querySelectorAll('.ops-date-cb:checked')].map(cb => cb.value);
+  if (!selected.length) { closeOpsClearModal(); return; }
+  const today = new Date().toLocaleDateString('en-GB');
+  operations = operations.filter(o => !selected.includes(o.date || today));
+  saveOps(); updateOpsCount(); renderOps(); closeOpsClearModal();
+  showToast(`تم حذف ${selected.length} يوم ✓`);
+}
+
+function clearDateFilter() { document.getElementById('dateFilter').value=''; renderOps(); }
+
+function updateOpsCount() {
+  const today = new Date().toLocaleDateString('en-GB');
+  document.getElementById('opsCount').textContent = operations.length;
+  document.getElementById('statTotal').textContent = operations.length;
+  document.getElementById('statToday').textContent = operations.filter(op=>op.date===today).length;
+}
+
+let mcbeCount = 1;
+function addMcbe() {
+  mcbeCount++;
+  const id    = `mcbeNum${mcbeCount}`;
+  const amtId = `mcbeAmt${mcbeCount}`;
+  const container = document.getElementById('mcbeContainer');
+  const div = document.createElement('div');
+  div.className = 'mcbe-row';
+  div.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;align-items:center;';
+  div.innerHTML = `
+    <input type="text" class="field-input" id="${id}" placeholder="MCBE N." oninput="updateSummary()" style="flex:2;"/>
+    <input type="number" class="field-input" id="${amtId}" placeholder="Amount" oninput="calcMcbeTotal()" style="flex:1.2;text-align:right;"/>
+    <button class="copy-btn" onclick="copyField('${id}', this)" style="margin-top:0;">⎘</button>
+    <button onclick="removeMcbe(this)" style="padding:4px 7px;background:rgba(139,32,32,.15);border:1px solid rgba(139,32,32,.3);border-radius:3px;color:#8b2020;cursor:pointer;font-size:.8rem;">✕</button>`;
+  container.appendChild(div);
+  calcMcbeTotal();
+}
+
+function calcMcbeTotal() {
+  let total = 0;
+  document.querySelectorAll('#mcbeContainer input[type=number]').forEach(el => {
+    total += parseFloat(el.value) || 0;
+  });
+  const totalRow = document.getElementById('mcbeTotalRow');
+  const totalEl  = document.getElementById('mcbeTotal');
+  const cur = document.getElementById('currency')?.value || '';
+  if (totalRow) totalRow.style.display = total > 0 ? 'flex' : 'none';
+  if (totalEl)  totalEl.textContent = total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + (cur ? ' ' + cur : '');
+}
+
+function removeMcbe(btn) { btn.closest('.mcbe-row').remove(); updateSummary(); calcMcbeTotal(); }
+
+function updateSwiftPreview() {
+  const ourRef  = document.getElementById('ourRef').value.trim()   || '';
+  const yourRef = document.getElementById('bankRef').value.trim()  || '';
+  const currency= document.getElementById('currency').value         || '';
+  const amount  = document.getElementById('docAmount').value.trim() || '';
+
+  const ready = ourRef && yourRef && currency && amount;
+
+  // Update MT400 button and card color
+  const btn  = document.getElementById('subTabMT400');
+  const dot  = document.getElementById('mt400Dot');
+  const card = document.getElementById('mt400Card');
+  if (dot)  dot.style.display = ready ? 'none' : 'inline-block';
+  if (btn) {
+    btn.style.background = ready ? '#2d7a4f' : 'white';
+    btn.style.color      = ready ? 'white'   : 'var(--dim)';
+  }
+  if (card) {
+    card.style.background   = ready ? '#e8f5ee' : '';
+    card.style.borderColor  = ready ? '#2d7a4f' : '';
+    card.style.boxShadow    = ready ? '0 0 0 2px rgba(45,122,79,.2)' : '';
+  }
+  const preview = document.getElementById('swiftPreview');
+  if (preview) {
+    preview.style.background   = ready ? '#d4edda' : '#f8fff8';
+    preview.style.borderColor  = ready ? '#2d7a4f' : '#a8d5b5';
+  }
+
+  const msg = ready
+    ? [`OUR REF   ${ourRef}`,`YOUR REF  ${yourRef}`,``,`WE ACKNOWLEDGE THAT WE SENT TO YOU FOR AMOUNT - ${amount} ${currency}`,`WITHOUT ANY RESPONSE FOR US`].join('\n')
+    : 'Fill in OUR REF, Bank Reference, Amount and Currency to generate…';
+  document.getElementById('swiftPreview').textContent = msg;
+}
+
+function copySwift(btn) {
+  const text = document.getElementById('swiftPreview').textContent;
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(()=>{ btn.classList.add('copied'); btn.textContent='✓ Copied!'; setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent='⎘ Copy Message'; },2000); }).catch(()=>fallbackCopy(text,btn));
+  } else { fallbackCopy(text,btn); }
+}
+
+function fallbackCopy(text,btn) {
+  const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); btn.classList.add('copied'); btn.textContent='✓ Copied!'; setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent='⎘ Copy Message'; },2000); }
+  catch(e){ showToast('Copy failed — please copy manually'); }
+  document.body.removeChild(ta);
+}
+
+function resetForm() {
+  // Clear all input fields
+  ['branchNum','ticketNum','customerId','contractNum','mcbeNum','bankRef','ourRef','form4Ref',
+   'docAmount','exchRate','commRate','commResult','swiftDate','swiftYourRef','maturityDate',
+   'advanceAmount','tboNum','siebelNum','zcomNum400','zcomNum412','zcomNum410',
+   'specialRatePct','batchNumber','siebelRate']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('currency').value='';
+
+  // Summary
+  ['sBranch','sTicket','sCustomer','sBankRef','sCurrency','sAmount','sRate','sComm','sCommRate','sMaturity']
+    .forEach(id=>setVal(id,''));
+  setVal('sSwiftComm','');
+  document.getElementById('summaryContract').innerHTML='<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryOurRef').innerHTML='<span class="ref-empty">pending…</span>';
+  document.getElementById('summaryForm4Ref').innerHTML='<span class="ref-empty">pending…</span>';
+  document.getElementById('formulaDisplay').innerHTML='Amount × Exch. Rate × Comm<br>÷ 100 = <strong>EGP</strong>';
+  const box=document.getElementById('swiftCommStatus'); box.className='swift-status neutral'; box.textContent='— Enter date —';
+
+  // Reset ADVANCE
+  advanceOn=false;
+  document.getElementById('advanceCheck').checked=false;
+  document.getElementById('advanceToggle').classList.remove('on');
+  document.getElementById('advanceStatus').textContent='OFF';
+  document.getElementById('advTransferRow').style.display='none';
+  document.getElementById('mcbeSection').style.display='none';
+  document.getElementById('sMcbeRow').style.display='none';
+  document.getElementById('swiftCommSection').style.display='none';
+  const td = document.getElementById('transferDisplay');
+  if (td) td.textContent='—';
+
+  // Reset OUR
+  ourTransferOn=false;
+  const ourBtn = document.getElementById('ourToggleBtn');
+  const ourRow = document.getElementById('ourTransferRow');
+  if (ourBtn) { ourBtn.style.background='white'; ourBtn.style.color='var(--dim)'; ourBtn.style.borderColor='var(--border)'; }
+  if (ourRow) ourRow.style.display='none';
+  const otd = document.getElementById('ourTransferDisplay');
+  if (otd) { otd.textContent='—'; otd.dataset.deduction='0'; }
+
+  // Reset Special Rate
+  if (specialRateOn) toggleSpecialRate();
+
+  // Reset MT tabs color
+  ['ncSubTabMT412','subTabMT410','ncSubTabMT410','subTabEKHTAR','ncSubTabEKHTAR'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.style.background='white'; btn.style.color='var(--dim)'; }
+  });
+
+  document.getElementById('branchNum').focus();
+  try { localStorage.removeItem(FORM_KEY); } catch(e){}
+  showToast('Form cleared — ready for new entry');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+const FORM_KEY = 'yh_form_data';
+const SAVE_FIELDS = ['branchNum','ticketNum','customerId','contractNum','mcbeNum','bankRef','docAmount','exchRate','commRate','currency','swiftDate','maturityDate'];
+
+function saveForm() {
+  const data={};
+  SAVE_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) data[id]=el.value; });
+  data._contractType = currentContractType;
+  try { localStorage.setItem(FORM_KEY, JSON.stringify(data)); } catch(e){}
+}
+
+function loadForm() {
+  try {
+    const saved=localStorage.getItem(FORM_KEY);
+    if (!saved) return;
+    const data=JSON.parse(saved);
+    if (data._contractType && data._contractType !== currentContractType) return;
+    SAVE_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el && data[id]!==undefined) el.value=data[id]; });
+    autoGenerate(); calcCommission(); checkSwiftComm(); updateSwiftPreview();
+    showToast('✓ Last session restored');
+  } catch(e){}
+}
+
+// Signature protection
+(function(){
+  const sigName="Youssef Hakeem";
+  setTimeout(function(){
+    const el=document.getElementById('sigName'); if(!el) return;
+    new MutationObserver(function(){ if(el.textContent!==sigName) el.textContent=sigName; }).observe(el,{childList:true,characterData:true,subtree:true});
+  },100);
+  loadFx();
+})();
+</script>
+</body>
+</html>
