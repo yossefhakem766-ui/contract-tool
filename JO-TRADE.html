@@ -360,35 +360,34 @@
 
     <!-- CLSI Sub-tabs (103 / 202 / نظامية / MT 400 / BATCH) — only shown for CLSI -->
     <div id="clsiSubTabs" style="display:none;margin-bottom:14px;">
-      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;">
-        <button id="subTabADV" onclick="guardedSetClsiSubTab('ADV')" style="padding:8px 24px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;">ADVANCE PAYMENT</button>
-        <button id="subTab103" onclick="guardedSetClsiSubTab('103')" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">103</button>
-        <button id="subTab202" onclick="guardedSetClsiSubTab('202')" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">202</button>
-        <button id="subTabNEZ" onclick="guardedSetClsiSubTab('NEZ')" style="padding:8px 24px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">نظامية</button>
-        <button id="subTabEKHTAR" onclick="openEkhtarScreen()" style="display:none;padding:8px 24px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">إخطار وصول</button>
-        <button id="subTabMT410" onclick="openMt410Screen()" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 410</button>
-        <button id="subTabBATCH" onclick="setClsiSubTab('BATCH'); openBatchScreen();" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">BATCH</button>
-        <button id="subTabTRANSFER" onclick="setClsiSubTab('TRANSFER'); openTransferScreen();" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">TRANSFER</button>
-        <button id="subTabTBO" onclick="setClsiSubTab('TBO'); openTboScreen();" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">TBO</button>
-        <button id="subTabMT400" onclick="setClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">
-          <span id="mt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;margin-right:5px;transition:background .3s;"></span>MT 400
+      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;align-items:stretch;">
+        <button id="subTabADV" onclick="guardedSetClsiSubTab('ADV')" style="padding:0 20px;height:38px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">ADVANCE PAYMENT</button>
+        <button id="subTab103" onclick="guardedSetClsiSubTab('103')" style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">103</button>
+        <button id="subTab202" onclick="guardedSetClsiSubTab('202')" style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">202</button>
+        <button id="subTabNEZ" onclick="guardedSetClsiSubTab('NEZ')" style="padding:0 20px;height:38px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">نظامية</button>
+        <button id="subTabEKHTAR" onclick="openEkhtarScreen()" style="display:none;padding:0 20px;height:38px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">إخطار وصول</button>
+        <button id="subTabMT410" onclick="openMt410Screen()" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">MT 410</button>
+        <button id="subTabBATCH" onclick="setClsiSubTab('BATCH'); openBatchScreen();" style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">BATCH</button>
+        <button id="subTabTRANSFER" onclick="setClsiSubTab('TRANSFER'); openTransferScreen();" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">TRANSFER</button>
+        <button id="subTabTBO" onclick="setClsiSubTab('TBO'); openTboScreen();" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">TBO</button>
+        <button id="subTabMT400" onclick="setClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;gap:5px;">
+          <span id="mt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;flex-shrink:0;transition:background .3s;"></span>MT 400
         </button>
       </div>
     </div>
 
-    <!-- Non-CLSI Sub-tabs (نظامية / إخطار وصول) — shown for CLUD/CLUW/CLUG -->
     <div id="nonClsiSubTabs" style="display:none;margin-bottom:14px;">
-      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;">
-        <button id="ncSubTab103"   onclick="setNonClsiSubTab('103')"   style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;">103</button>
-        <button id="ncSubTab202"   onclick="setNonClsiSubTab('202')"   style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">202</button>
-        <button id="ncSubTabNEZ"   onclick="setNonClsiSubTab('NEZ')"   style="padding:8px 24px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">نظامية</button>
-        <button id="ncSubTabBATCH" onclick="setNonClsiSubTab('BATCH'); openBatchScreen();" style="padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">BATCH</button>
-        <button id="ncSubTabTRANSFER" onclick="setNonClsiSubTab('TRANSFER'); openTransferScreen();" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">TRANSFER</button>
-        <button id="ncSubTabTBO" onclick="setNonClsiSubTab('TBO'); openTboScreen();" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">TBO</button>
-        <button id="ncSubTabMT400" onclick="setNonClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;"><span id="ncMt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;margin-right:5px;transition:background .3s;"></span>MT 400</button>
-        <button id="ncSubTabMT412" onclick="setNonClsiSubTab('MT412'); openMtScreen('mt412Screen');" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 412</button>
-        <button id="ncSubTabEKHTAR" onclick="openEkhtarScreen()" style="display:none;padding:8px 24px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">إخطار وصول</button>
-        <button id="ncSubTabMT410" onclick="openMt410Screen()" style="display:none;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;">MT 410</button>
+      <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;align-items:stretch;">
+        <button id="ncSubTab103"      onclick="guardedSetNonClsiSubTab('103')"                          style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">103</button>
+        <button id="ncSubTab202"      onclick="guardedSetNonClsiSubTab('202')"                          style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">202</button>
+        <button id="ncSubTabNEZ"      onclick="guardedSetNonClsiSubTab('NEZ')"                          style="padding:0 20px;height:38px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">نظامية</button>
+        <button id="ncSubTabBATCH"    onclick="setNonClsiSubTab('BATCH'); openBatchScreen();"           style="padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;display:flex;align-items:center;">BATCH</button>
+        <button id="ncSubTabTRANSFER" onclick="setNonClsiSubTab('TRANSFER'); openTransferScreen();"     style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">TRANSFER</button>
+        <button id="ncSubTabTBO"      onclick="setNonClsiSubTab('TBO'); openTboScreen();"               style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">TBO</button>
+        <button id="ncSubTabMT400"    onclick="setNonClsiSubTab('MT400'); openMtScreen('mt400Screen');" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;gap:5px;"><span id="ncMt400Dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c04020;flex-shrink:0;transition:background .3s;"></span>MT 400</button>
+        <button id="ncSubTabMT412"    onclick="setNonClsiSubTab('MT412'); openMtScreen('mt412Screen');" style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">MT 412</button>
+        <button id="ncSubTabEKHTAR"   onclick="openEkhtarScreen()"                                      style="display:none;padding:0 20px;height:38px;font-family:'Syne','Cairo',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:1px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">إخطار وصول</button>
+        <button id="ncSubTabMT410"    onclick="openMt410Screen()"                                       style="display:none;padding:0 20px;height:38px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:800;letter-spacing:2px;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:white;color:var(--dim);transition:all .2s;align-items:center;">MT 410</button>
       </div>
     </div>
 
@@ -650,19 +649,11 @@
                 <button class="copy-btn" onclick="copyField('form4Ref', this)">⎘ Copy</button>
               </div>
 
-              <!-- ZCOM REF -->
-              <div class="field-group">
-                <label class="field-label">ZCOM REF</label>
-                <input type="text" class="field-input" id="zcomRef" placeholder="e.g. 123456"
-                  style="font-family:'JetBrains Mono',monospace;font-weight:800;letter-spacing:1px;"
-                  oninput="this.value=this.value.replace(/\s/g,'')"/>
-                <button class="copy-btn" onclick="copyField('zcomRef', this)">⎘ Copy</button>
-              </div>
-
             </div>
           </div>
 
           <!-- Special Rate section opens here when toggled from Charges -->
+          <input type="hidden" id="zcomRef" value=""/>
           <div id="specialRateSectionWrap" style="display:none;">
             <hr class="inner-div">
           </div>
@@ -1703,7 +1694,7 @@ function renderMt410() {
     `TRADE FINANCE CENTRAL DEPARTMENT`,
     `BANQUE MISR`,
   ] : [];
-  if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+
   preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
 
   const dot = document.getElementById('mt410Dot');
@@ -2360,7 +2351,7 @@ function renderMt400Screen() {
       `WITHOUT ANY RESPONSE FOR US`,
     ]) : [];
 
-    if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+  
     preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
   }
 
@@ -2426,7 +2417,7 @@ function renderMt412Screen() {
       `TRADE FINANCE CENTRAL DEPARTMENT`,
     ]) : [];
 
-    if (ready && zcom) lines.push(``, `ZCOM NUM  ${zcom}`);
+  
     preview.textContent = ready ? lines.join('\n') : '— Fill OUR REF, CURRENCY and AMOUNT first —';
   }
 
